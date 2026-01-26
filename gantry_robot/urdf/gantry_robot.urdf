@@ -14,15 +14,7 @@
       <origin xyz="0 0 0.5"/>
       <inertia ixx="10" ixy="0" ixz="0" iyy="10" iyz="0" izz="10"/>
     </inertial>
-    <visual>
-      <origin xyz="0 0 0.5" rpy="0 0 0"/>
-      <geometry>
-        <box size="1.0 1.0 1.0"/>
-      </geometry>
-      <material name="gray">
-        <color rgba="0.5 0.5 0.5 1"/>
-      </material>
-    </visual>
+    <!-- Visual hidden for better view of robot parts -->
     <collision>
       <origin xyz="0 0 0.5" rpy="0 0 0"/>
       <geometry>
@@ -66,7 +58,7 @@
   <joint name="joint_x" type="prismatic">
     <parent link="base_link"/>
     <child link="x_carriage"/>
-    <origin xyz="0 0 0.75" rpy="0 0 0"/>
+    <origin xyz="0 0 1.1" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
     <limit lower="-0.4" upper="0.4" effort="100" velocity="1.0"/>
     <dynamics damping="10" friction="5"/>
@@ -100,7 +92,7 @@
   <joint name="joint_y" type="prismatic">
     <parent link="x_carriage"/>
     <child link="y_carriage"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.2" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <limit lower="-0.3" upper="0.3" effort="100" velocity="1.0"/>
     <dynamics damping="10" friction="5"/>
@@ -134,10 +126,10 @@
   <joint name="joint_z" type="prismatic">
     <parent link="y_carriage"/>
     <child link="z_carriage"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.25" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
-    <limit lower="-0.5" upper="0.5" effort="100" velocity="1.0"/>
-    <dynamics damping="10" friction="5"/>
+    <limit lower="-0.5" upper="0.5" effort="500" velocity="1.0"/>
+    <dynamics damping="50" friction="10"/>
   </joint>
   
   <!-- End-effector frame (tool0) -->
@@ -201,5 +193,71 @@
     <child link="gripper_cup"/>
     <origin xyz="0 0 -0.1" rpy="0 0 0"/>
   </joint>
+  
+  <!-- Gazebo Materials for Colors -->
+  <gazebo reference="base_link">
+    <material>Gazebo/Grey</material>
+  </gazebo>
+  
+  <gazebo reference="x_carriage">
+    <material>Gazebo/Orange</material>
+  </gazebo>
+  
+  <gazebo reference="y_carriage">
+    <material>Gazebo/Blue</material>
+  </gazebo>
+  
+  <gazebo reference="z_carriage">
+    <material>Gazebo/Green</material>
+  </gazebo>
+  
+  <gazebo reference="tool0">
+    <material>Gazebo/Red</material>
+  </gazebo>
+  
+  <gazebo reference="gripper_cup">
+    <material>Gazebo/Yellow</material>
+  </gazebo>
+  
+  <!-- Gazebo ROS Control Plugin -->
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/</robotNamespace>
+    </plugin>
+  </gazebo>
+  
+  <!-- Transmissions for ros_control -->
+  <transmission name="trans_joint_x">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="joint_x">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor_x">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  
+  <transmission name="trans_joint_y">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="joint_y">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor_y">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  
+  <transmission name="trans_joint_z">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="joint_z">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor_z">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
   
 </robot>

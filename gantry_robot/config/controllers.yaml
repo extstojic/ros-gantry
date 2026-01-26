@@ -33,10 +33,10 @@ joint_z_controller:
   joints:
     - joint_z
   gains:
-    joint_z: {p: 1000.0, i: 500.0, d: 10.0}
+    joint_z: {p: 5000.0, i: 2000.0, d: 100.0}
   constraints:
     goal_time: 0.0
-    stopped_velocity_tolerance: 0.02
+    stopped_velocity_tolerance: 0.05
     joint_z:
-      trajectory: 0.05
-      goal: 0.02
+      trajectory: 0.1
+      goal: 0.05
