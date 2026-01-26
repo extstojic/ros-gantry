@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>gantry_robot</name>
+  <version>0.1.0</version>
+  <description>ROS simulation package for a 3-axis Cartesian (Gantry) robot with pick-and-place capabilities</description>
+  
+  <maintainer email="user@example.com">User</maintainer>
+  <license>BSD</license>
+  
+  <author email="user@example.com">User</author>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <build_depend>rospy</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>trajectory_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>control_msgs</build_depend>
+  <build_depend>gazebo_ros</build_depend>
+  <build_depend>gazebo_plugins</build_depend>
+  <build_depend>urdf</build_depend>
+  <build_depend>xacro</build_depend>
+  
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>trajectory_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>control_msgs</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>gazebo_plugins</exec_depend>
+  <exec_depend>urdf</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>joint_state_controller</exec_depend>
+  <exec_depend>joint_trajectory_controller</exec_depend>
+  <exec_depend>tf</exec_depend>
+  <exec_depend>tf2</exec_depend>
+  
+</package>

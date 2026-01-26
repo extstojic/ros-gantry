@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<launch>
+  
+  <!-- Start Gazebo -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find gantry_robot)/worlds/gantry_workspace.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+  
+  <!-- Load robot description -->
+  <param name="robot_description" textfile="$(find gantry_robot)/urdf/gantry_robot.urdf"/>
+  
+  <!-- Spawn the robot in Gazebo -->
+  <node name="spawn_gantry" pkg="gazebo_ros" type="spawn_model" 
+    args="-urdf -model gantry_robot -param robot_description -x 0 -y 0 -z 0"
+    output="screen"/>
+  
+  <!-- Publish TF -->
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" value="50.0"/>
+  </node>
+  
+  <!-- Start joint state publisher -->
+  <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_publisher">
+    <param name="use_gui" value="false"/>
+  </node>
+  
+  <!-- Load controller configuration -->
+  <rosparam file="$(find gantry_robot)/config/controllers.yaml" command="load"/>
+  
+  <!-- Start controller manager -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+    output="screen" args="joint_state_controller 
+                          joint_x_controller 
+                          joint_y_controller 
+                          joint_z_controller"/>
+  
+</launch>
