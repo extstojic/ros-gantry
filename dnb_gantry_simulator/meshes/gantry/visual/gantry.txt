@@ -1,0 +1,2 @@
+# Gantry visual meshes placeholder
+# Basic geometry is defined in URDF

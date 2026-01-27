@@ -1,0 +1,25 @@
+package: dnb_gantry_simulator
+name: 'Gantry Robot - Standard'
+description: 'Standard 3-axis Cartesian gantry robot (X: 800mm, Y: 600mm, Z: 600mm)'
+type: driver/robot/gantry/standard
+roslaunch: start.launch
+configuration:
+ - id: min_x
+   value: '-0.4'
+ - id: max_x
+   value: '0.4'
+ - id: min_y
+   value: '-0.3'
+ - id: max_y
+   value: '0.3'
+ - id: min_z
+   value: '-0.5'
+ - id: max_z
+   value: '0.5'
+ - id: max_speed
+   value: '0.2'
+nodes:
+ - node_callerid: /dnb_gantry_simulator
+   type: dnb_gantry_simulator_node
+status_topic: /dnb_gantry_simulator/status
+urdf: gantry.urdf
