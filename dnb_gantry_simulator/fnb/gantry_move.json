@@ -1,0 +1,126 @@
+{
+    "version": "1.0.0",
+    "errorcodes": [
+        "ERROR_POSITION_NOT_REACHABLE",
+        "ERROR_INVALID_SPEED",
+        "ERROR_DEVICE_NOT_AVAILABLE",
+        "ERROR_EXTERNAL_ABORT"
+    ],
+    "skip": false,
+    "type": "Basic",
+    "title": "Gantry - Move",
+    "description": "Function Block to move the simulated gantry to a 3D position.",
+    "image": "dnb-icon-move_cartesian",
+    "script": "#!/usr/bin/env python\nimport rospy\nfrom dnb_gantry_simulator.srv import *\nfrom std_srvs.srv import *\n\ndef execute(input_parameters, output_parameters):\n\tglobal srv_move\n\tglobal srv_stop\n\t\n\tservice_name_move = '/dnb_gantry_simulator/move'\n\tservice_name_stop = '/dnb_gantry_simulator/stop'\n\t\n\ttry:\n\t\trospy.wait_for_service(service_name_move, 1.0)\n\t\trospy.wait_for_service(service_name_stop, 1.0)\n\texcept rospy.ROSException:\n\t\traise Exception('ERROR_DEVICE_NOT_AVAILABLE')\n\t\n\tsrv_move = rospy.ServiceProxy(service_name_move, MoveGantry)\n\tsrv_stop = rospy.ServiceProxy(service_name_stop, Trigger)\n\t\n\treq = MoveGantryRequest()\n\treq.x = float(input_parameters[0]['value'])\n\treq.y = float(input_parameters[1]['value'])\n\treq.z = float(input_parameters[2]['value'])\n\treq.speed = float(input_parameters[3]['parameters'][0]['value'])\n\treq.speed_unit = str(input_parameters[3]['parameters'][1]['value'])\n\t\n\ttry:\n\t\tres = srv_move(req)\n\t\t\n\t\tif res.error_code == MoveGantryResponse.SUCCESS:\n\t\t\tpass\n\t\telif res.error_code == MoveGantryResponse.ERROR_POSITION_NOT_REACHABLE:\n\t\t\traise Exception('ERROR_POSITION_NOT_REACHABLE')\n\t\telif res.error_code == MoveGantryResponse.ERROR_INVALID_SPEED:\n\t\t\traise Exception('ERROR_INVALID_SPEED')\n\t\telif res.error_code == MoveGantryResponse.ERROR_EXTERNAL_ABORT:\n\t\t\traise Exception('ERROR_EXTERNAL_ABORT')\n\texcept rospy.ROSException:\n\t\traise Exception('ERROR_UNKNOWN')\n\treturn output_parameters\n\ndef abort():\n\tglobal srv_move\n\tglobal srv_stop\n\tsrv_move.close()\n\t\n\treq = TriggerRequest()\n\t\n\ttry:\n\t\tres = srv_stop(req)\n\texcept rospy.ROSException:\n\t\tpass\n\tsrv_stop.close()\n\t",
+    "identifier": "b223d965-b675-5336-c5f3-cbb13f17c3f4",
+    "inputParameters": [
+        {
+            "availableOptions": [],
+            "paramId": "01d398b8-79d3-5278-951f-ca0132bf1f01",
+            "displayTitle": "X Position",
+            "title": "x",
+            "description": null,
+            "value": null,
+            "type": "primitive",
+            "parameters": [],
+            "dataType": "float",
+            "reference": null,
+            "constraints": [],
+            "unit": "m"
+        },
+        {
+            "availableOptions": [],
+            "paramId": "12e409c9-8ad4-6389-a62g-db1243cg2g12",
+            "displayTitle": "Y Position",
+            "title": "y",
+            "description": null,
+            "value": null,
+            "type": "primitive",
+            "parameters": [],
+            "dataType": "float",
+            "reference": null,
+            "constraints": [],
+            "unit": "m"
+        },
+        {
+            "availableOptions": [],
+            "paramId": "23f510da-9be5-7490-b73h-ec2354dh3h23",
+            "displayTitle": "Z Position",
+            "title": "z",
+            "description": null,
+            "value": null,
+            "type": "primitive",
+            "parameters": [],
+            "dataType": "float",
+            "reference": null,
+            "constraints": [],
+            "unit": "m"
+        },
+        {
+            "availableOptions": [],
+            "paramId": "bf3c8f01-d45e-5c9c-c22g-87d23c9c2d6g",
+            "displayTitle": "Speed",
+            "title": "speed",
+            "description": null,
+            "value": null,
+            "type": "unitval",
+            "parameters": [
+                {
+                    "availableOptions": [],
+                    "title": "speed_value",
+                    "displayTitle": "Speed Value",
+                    "description": null,
+                    "type": "primitive",
+                    "value": "0.05",
+                    "dataType": "float",
+                    "reference": null,
+                    "paramId": "fg62bf0b-c19d-5e9b-a43h-94f34e0f4f7b",
+                    "parameters": [],
+                    "constraints": [
+                        {
+                            "msg": "Value should be smaller or equals 100",
+                            "rule": "=PERCENT?<=100",
+                            "reference": "b3b58e19-96e3-53ff-a8gc-2632da0b5b12",
+                            "type": "ref"
+                        },
+                        {
+                            "msg": "Value should be greater than 0",
+                            "rule": "=PERCENT?>0",
+                            "reference": "b3b58e19-96e3-53ff-a8gc-2632da0b5b12",
+                            "type": "ref"
+                        },
+                        {
+                            "msg": "Value should be greater than 0",
+                            "rule": "=M/S?>0",
+                            "reference": "b3b58e19-96e3-53ff-a8gc-2632da0b5b12",
+                            "type": "ref"
+                        }
+                    ]
+                },
+                {
+                    "availableOptions": [
+                        "M/S",
+                        "PERCENT"
+                    ],
+                    "title": "speed_type",
+                    "displayTitle": "Speed Type",
+                    "description": null,
+                    "type": "select",
+                    "value": "M/S",
+                    "dataType": "string",
+                    "reference": null,
+                    "paramId": "b3b58e19-96e3-53ff-a8gc-2632da0b5b12",
+                    "parameters": [],
+                    "constraints": []
+                }
+            ],
+            "dataType": "speed",
+            "reference": null,
+            "constraints": []
+        }
+    ],
+    "outputParameters": [],
+    "globalParameters": [],
+    "models": [],
+    "format": "linked#2.4.0"
+}
