@@ -12,17 +12,11 @@ int main(int argc, char** argv) {
     ROS_INFO("Starting DNB Gantry Simulator Node");
     
     // Load parameters
-    double x_min = pnh.param("x_min", -0.5);
-    double x_max = pnh.param("x_max", 0.5); 
-    double y_min = pnh.param("y_min", -0.3);
-    double y_max = pnh.param("y_max", 0.3);
-    double z_min = pnh.param("z_min", -0.4);
-    double z_max = pnh.param("z_max", 0.1);
-    double max_speed = pnh.param("max_speed", 0.2);
+    double simulation_rate = pnh.param("simulation_rate", 100.0);
     
     // Create controller and driver
-    simulator::GantryController controller(x_min, x_max, y_min, y_max, z_min, z_max, max_speed);
-    simulator::GantryDriver driver(nh, &controller);
+    simulator::GantryController controller(simulation_rate);
+    simulator::GantryDriver driver(&controller);
     
     ROS_INFO("DNB Gantry Simulator Node started successfully");
     
