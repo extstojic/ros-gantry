@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
     std_msgs
     std_srvs
+    sensor_msgs
     tf2_ros
     tf2_geometry_msgs
 )
@@ -26,7 +27,7 @@ generate_messages(
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp rospy message_runtime geometry_msgs std_msgs std_srvs tf2_ros tf2_geometry_msgs)
+  CATKIN_DEPENDS roscpp rospy message_runtime geometry_msgs std_msgs std_srvs sensor_msgs tf2_ros tf2_geometry_msgs)
 
 include_directories(
   include
@@ -51,3 +52,6 @@ install(
 )
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY urdf DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY module_config DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY fnb DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

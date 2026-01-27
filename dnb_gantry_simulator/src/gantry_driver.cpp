@@ -13,6 +13,12 @@ GantryDriver::GantryDriver(GantryController* controller) {
     srv_move = private_nh.advertiseService("move", &GantryDriver::cb_move, this);
     srv_stop = stop_nh.advertiseService("stop", &GantryDriver::cb_stop, this);
     pub_notify_changed_transforms = nh.advertise<std_msgs::Empty>("/notify_changed_system_transformations", 1);
+    pub_joint_states = private_nh.advertise<sensor_msgs::JointState>("joint_states", 10);
+    pub_status = private_nh.advertise<std_msgs::String>("status", 1, true);
+
+    std_msgs::String status_msg;
+    status_msg.data = "ready";
+    pub_status.publish(status_msg);
 
     controller->register_update_callback(std::bind(&GantryDriver::cb_update, this, std::placeholders::_1, std::placeholders::_2));
 }
@@ -20,7 +26,24 @@ GantryDriver::GantryDriver(GantryController* controller) {
 GantryDriver::~GantryDriver() {
 }
 
+void GantryDriver::publishJointStates(GantryPosition position) {
+    sensor_msgs::JointState joint_state;
+    joint_state.header.stamp = ros::Time::now();
+    joint_state.name.push_back("x_joint");
+    joint_state.name.push_back("y_joint");
+    joint_state.name.push_back("z_joint");
+    joint_state.position.push_back(position.x);
+    joint_state.position.push_back(position.y);
+    joint_state.position.push_back(position.z);
+    joint_state.velocity.push_back(0.0);
+    joint_state.velocity.push_back(0.0);
+    joint_state.velocity.push_back(0.0);
+    pub_joint_states.publish(joint_state);
+}
+
 void GantryDriver::cb_update(GantryPosition position, bool moved) {
+    publishJointStates(position);
+
     geometry_msgs::TransformStamped tf;
     tf.header.frame_id = "gantry_base";
     tf.header.stamp = ros::Time::now();

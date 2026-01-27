@@ -1,0 +1,7 @@
+error_code,message,description
+0,SUCCESS,Operation completed successfully
+1,ERROR_POSITION_NOT_REACHABLE,Target position is outside the workspace limits
+2,ERROR_INVALID_SPEED,Speed value is invalid or out of range
+3,ERROR_EXTERNAL_ABORT,Motion was aborted externally
+4,ERROR_COMMUNICATION,Communication error with robot
+5,ERROR_NOT_INITIALIZED,Robot not initialized
