@@ -47,3 +47,7 @@ configuration:
    namespace: ''
    datatype: float
    default: '0.2'
+nodes:
+ - node_callerid: /dnb_gantry_simulator
+   type: dnb_gantry_simulator_node
+status_topic: /dnb_gantry_simulator/status
