@@ -21,8 +21,8 @@ int main(int argc, char** argv) {
     double max_speed = pnh.param("max_speed", 0.2);
     
     // Create controller and driver
-    GantryController controller(x_min, x_max, y_min, y_max, z_min, z_max, max_speed);
-    GantryDriver driver(nh, &controller);
+    simulator::GantryController controller(x_min, x_max, y_min, y_max, z_min, z_max, max_speed);
+    simulator::GantryDriver driver(nh, &controller);
     
     ROS_INFO("DNB Gantry Simulator Node started successfully");
     
