@@ -26,8 +26,7 @@ generate_messages(
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp rospy message_runtime geometry_msgs std_msgs std_srvs dnb_rmi_library dnb_frame_manager visualization_msgs tf2_ros tf2_geometry_msgs
-)
+  CATKIN_DEPENDS roscpp rospy message_runtime geometry_msgs std_msgs std_srvs tf2_ros tf2_geometry_msgs)
 
 include_directories(
   include

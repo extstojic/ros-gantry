@@ -1,8 +1,8 @@
 #include <ros/ros.h>
 #include <std_srvs/Empty.h>
 
-#include "gantry_controller.h"
-#include "gantry_driver.h"
+#include "dnb_gantry_simulator/gantry_controller.h"
+#include "dnb_gantry_simulator/gantry_driver.h"
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "dnb_gantry_simulator_node");
