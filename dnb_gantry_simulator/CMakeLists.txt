@@ -10,11 +10,8 @@ find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
     std_msgs
     std_srvs
-    dnb_rmi_library
-    dnb_frame_manager
     tf2_ros
     tf2_geometry_msgs
-    visualization_msgs
 )
 
 add_service_files(

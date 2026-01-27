@@ -1,13 +1,11 @@
 #include <ros/ros.h>
 #include <dnb_gantry_simulator/gantry_controller.h>
 #include <dnb_gantry_simulator/gantry_driver.h>
-#include <dnb_rmi_library/ComponentStatusPublisher.h>
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "dnb_gantry_simulator");
     ros::NodeHandle nh;
     ros::NodeHandle private_nh("~");
-    rmi::ComponentStatus::getInstance().init(nh, "dnb_gantry");
 
     ros::Duration(1.0).sleep();
 
@@ -45,19 +43,13 @@ int main(int argc, char **argv) {
     simulator::GantryController controller(50.0);
     simulator::GantryDriver driver(&controller);
 
-    if (!controller.initialize(limits, init_pos, 0.1)) {
-        rmi::ComponentStatus::getInstance().sendConfigNeeded("Invalid Setup");
-        return 1;
-    }
 
     ros::Duration(1.0).sleep();
-    rmi::ComponentStatus::getInstance().sendRunning("Started");
 
     while (ros::ok()) {
         ros::spinOnce();
         loop_rate.sleep();
     }
 
-    rmi::ComponentStatus::getInstance().sendStopped("Shutdown");
     return 0;
 }
