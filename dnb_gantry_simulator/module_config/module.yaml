@@ -1,7 +1,7 @@
 package: dnb_gantry_simulator
 name: 'Gantry Robot'
 description: 'Simulator for a 3-axis Cartesian gantry robot (X, Y, Z).'
-type: driver/other/linear_axis
+type: driver/robot/gantry/generic
 roslaunch: start.launch
 rosshutdown: stop.launch
 configuration:
