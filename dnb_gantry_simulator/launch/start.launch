@@ -19,13 +19,5 @@
 		<param name="max_z" value="$(arg max_z)"/>
 		<param name="max_speed" value="$(arg max_speed)"/>
 	</node>
-
-	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen"/>
-
-	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" output="screen">
-		<param name="use_gui" value="false"/>
-		<rosparam param="source_list">[/dnb_gantry_simulator/joint_states]</rosparam>
-	</node>
-
-	<node name="stfp_world_to_gantry_base" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 world robot_base 100"/>
+</launch>
 </launch>
