@@ -20,4 +20,3 @@
 		<param name="max_speed" value="$(arg max_speed)"/>
 	</node>
 </launch>
-</launch>
