@@ -83,7 +83,7 @@ bool GantryController::setTarget(double x, double y, double z) {
 }
 
 bool GantryController::setSpeed(double spd) {
-    if (spd <= 0.0 || spd > limits.max_speed) return false;
+    if (spd < limits.min_speed || spd > limits.max_speed) return false;
     mutex_speed.lock();
     speed = spd;
     mutex_speed.unlock();

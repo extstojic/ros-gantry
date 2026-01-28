@@ -1,2 +1,0 @@
-# Gantry collision meshes placeholder
-# Basic geometry is defined in URDF

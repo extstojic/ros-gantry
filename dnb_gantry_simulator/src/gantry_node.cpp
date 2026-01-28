@@ -16,8 +16,6 @@ int main(int argc, char** argv) {
     
     // Create controller and driver
     simulator::GantryController controller(simulation_rate);
-    
-    
     simulator::GantryDriver driver(&controller);
     
     ROS_INFO("DNB Gantry Simulator Node started successfully");
