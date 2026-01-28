@@ -14,10 +14,9 @@ GantryDriver::GantryDriver(GantryController* controller) {
     srv_stop = stop_nh.advertiseService("stop", &GantryDriver::cb_stop, this);
     pub_notify_changed_transforms = nh.advertise<std_msgs::Empty>("/notify_changed_system_transformations", 1);
     pub_joint_states = private_nh.advertise<sensor_msgs::JointState>("joint_states", 10);
-    pub_status = private_nh.advertise<std_msgs::String>("status", 1, true);
+    pub_status = private_nh.advertise<dnb_msgs::ComponentStatus>("status", 1, true);
 
-    std_msgs::String status_msg;
-    status_msg.data = "ready";
+    dnb_msgs::ComponentStatus status_msg;
     pub_status.publish(status_msg);
 
     controller->register_update_callback(std::bind(&GantryDriver::cb_update, this, std::placeholders::_1, std::placeholders::_2));

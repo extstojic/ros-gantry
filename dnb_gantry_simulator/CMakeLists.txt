@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
     sensor_msgs
     tf2_ros
     tf2_geometry_msgs
+    dnb_msgs
 )
 
 add_service_files(

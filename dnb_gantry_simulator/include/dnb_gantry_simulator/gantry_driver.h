@@ -9,6 +9,7 @@
 #include <std_msgs/Empty.h>
 #include <std_srvs/Trigger.h>
 #include <sensor_msgs/JointState.h>
+#include <dnb_msgs/ComponentStatus.h>
 #include <dnb_gantry_simulator/gantry_controller.h>
 #include <dnb_gantry_simulator/MoveGantry.h>
 
