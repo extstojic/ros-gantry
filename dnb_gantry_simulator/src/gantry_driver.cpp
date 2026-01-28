@@ -9,6 +9,32 @@ GantryDriver::GantryDriver(GantryController* controller) {
 
     stop_nh.setCallbackQueue(&stop_queue);
 
+    // Load limits from parameters
+    double min_x = private_nh.param("min_x", -0.4);
+    double max_x = private_nh.param("max_x", 0.4);
+    double min_y = private_nh.param("min_y", -0.3);
+    double max_y = private_nh.param("max_y", 0.3);
+    double min_z = private_nh.param("min_z", -0.5);
+    double max_z = private_nh.param("max_z", 0.5);
+    double max_speed = private_nh.param("max_speed", 0.2);
+
+    simulator::GantryLimits limits;
+    limits.min_x = min_x;
+    limits.max_x = max_x;
+    limits.min_y = min_y;
+    limits.max_y = max_y;
+    limits.min_z = min_z;
+    limits.max_z = max_z;
+    limits.max_speed = max_speed;
+    limits.min_speed = 0.0;
+
+    simulator::GantryPosition init_pos;
+    init_pos.x = 0.0;
+    init_pos.y = 0.0;
+    init_pos.z = 0.0;
+
+    controller->initialize(limits, init_pos, 0.1);
+
     sub_notify_reset_simulation = nh.subscribe("/notify_reset_simulation", 1, &GantryDriver::cb_reset, this);
     srv_move = private_nh.advertiseService("move", &GantryDriver::cb_move, this);
     srv_stop = stop_nh.advertiseService("stop", &GantryDriver::cb_stop, this);
@@ -44,9 +70,9 @@ void GantryDriver::cb_update(GantryPosition position, bool moved) {
     publishJointStates(position);
 
     geometry_msgs::TransformStamped tf;
-    tf.header.frame_id = "gantry_base";
+    tf.header.frame_id = "robot_base";
     tf.header.stamp = ros::Time::now();
-    tf.child_frame_id = "gantry_effector";
+    tf.child_frame_id = "end_effector";
     tf.transform.translation.x = position.x;
     tf.transform.translation.y = position.y;
     tf.transform.translation.z = position.z;

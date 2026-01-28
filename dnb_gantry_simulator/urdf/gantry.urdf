@@ -19,9 +19,7 @@
     <color rgba="0.8 0.0 0.0 1.0"/>
   </material>
 
-  <link name="world"/>
-
-  <link name="gantry_base">
+  <link name="robot_base">
     <visual>
       <geometry>
         <box size="1.0 0.8 0.05"/>
@@ -37,12 +35,6 @@
     </collision>
   </link>
 
-  <joint name="world_to_base" type="fixed">
-    <parent link="world"/>
-    <child link="gantry_base"/>
-    <origin xyz="0 0 0.5" rpy="0 0 0"/>
-  </joint>
-
   <link name="x_rail_left">
     <visual>
       <geometry>
@@ -54,7 +46,7 @@
   </link>
 
   <joint name="base_to_x_rail_left" type="fixed">
-    <parent link="gantry_base"/>
+    <parent link="robot_base"/>
     <child link="x_rail_left"/>
     <origin xyz="0 -0.35 0.05" rpy="0 0 0"/>
   </joint>
@@ -70,7 +62,7 @@
   </link>
 
   <joint name="base_to_x_rail_right" type="fixed">
-    <parent link="gantry_base"/>
+    <parent link="robot_base"/>
     <child link="x_rail_right"/>
     <origin xyz="0 0.35 0.05" rpy="0 0 0"/>
   </joint>
@@ -92,7 +84,7 @@
   </link>
 
   <joint name="x_joint" type="prismatic">
-    <parent link="gantry_base"/>
+    <parent link="robot_base"/>
     <child link="x_carriage"/>
     <origin xyz="0 0 0.1" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
