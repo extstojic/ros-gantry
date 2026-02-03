@@ -74,6 +74,7 @@ GantryDriver::~GantryDriver() {
 void GantryDriver::publishJointStates(GantryPosition position) {
     sensor_msgs::JointState joint_state;
     joint_state.header.stamp = ros::Time::now();
+    joint_state.header.frame_id = "robot_base";  // Add frame_id
     joint_state.name.push_back("x_joint");
     joint_state.name.push_back("y_joint");
     joint_state.name.push_back("z_joint");

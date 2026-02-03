@@ -7,6 +7,8 @@ robot_data:
   fixed_frame: 'robot_base'
   flange_frame: 'tool0'
   urdf_param: 'robot_description'
+  # For Cartesian-direct robots (like gantries), we don't need FK/IK conversion
+  robot_class: 'Cartesian'
 
 joints:
   - name: x_joint
@@ -24,5 +26,6 @@ joints:
     axis: z
     min: -0.5
     max: 0.1
+
 base_link: robot_base
 tool_link: tool0
