@@ -167,7 +167,14 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
         }
         
         // Handle different command types
-        if (cmd.command_type == "LIN" || cmd.command_type == "PTP" || cmd.command_type == "JOINTS") {
+        // Note: UI jog commands may have empty command_type, treat them as LIN
+        std::string cmd_type = cmd.command_type;
+        if (cmd_type.empty()) {
+            cmd_type = "LIN";  // Default to LIN for jog commands
+            ROS_INFO("Empty command_type, defaulting to LIN");
+        }
+        
+        if (cmd_type == "LIN" || cmd_type == "PTP" || cmd_type == "JOINTS") {
             // For gantry, we interpret pose as XYZ positions
             if (cmd.pose.size() >= 3) {
                 double x = cmd.pose[0];
@@ -220,7 +227,7 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
             }
         } else {
             // Unknown command type - just succeed for now
-            ROS_WARN("Unknown command type: %s - treating as no-op", cmd.command_type.c_str());
+            ROS_WARN("Unknown command type: '%s' - treating as no-op", cmd_type.c_str());
             result.result_code = robot_movement_interface::Result::SUCCESS;
             result.additional_information = "Command type not implemented for gantry";
         }
