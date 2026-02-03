@@ -39,7 +39,7 @@ GantryDriver::GantryDriver(GantryController* controller) {
     srv_move = private_nh.advertiseService("move", &GantryDriver::cb_move, this);
     srv_stop = stop_nh.advertiseService("stop", &GantryDriver::cb_stop, this);
     srv_stop_robot_right_now = nh.advertiseService("stop_robot_right_now", &GantryDriver::cb_stop, this);  // Global stop service
-    srv_get_fk = nh.advertiseService("get_fk", &GantryDriver::cb_get_fk, this);  // Forward kinematics for UI markers
+    srv_get_fk = private_nh.advertiseService("get_fk", &GantryDriver::cb_get_fk, this);  // Forward kinematics for UI markers
     pub_notify_changed_transforms = nh.advertise<std_msgs::Empty>("/notify_changed_system_transformations", 1);
     pub_joint_states = private_nh.advertise<sensor_msgs::JointState>("joint_states", 10);
     pub_joint_states_global = nh.advertise<sensor_msgs::JointState>("/joint_states", 10);  // Global for robot_state_publisher
