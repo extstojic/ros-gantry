@@ -242,6 +242,11 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
                         result.result_code = robot_movement_interface::Result::SUCCESS;
                         result.additional_information = "Move completed";
                         ROS_INFO("Move completed successfully");
+                        
+                        // Explicitly publish the new position after movement
+                        GantryPosition final_pos = controller->getCurrentPosition();
+                        ROS_INFO("Publishing final position: x=%.4f, y=%.4f, z=%.4f", final_pos.x, final_pos.y, final_pos.z);
+                        cb_update(final_pos, true);  // true = position changed
                     } else {
                         result.result_code = robot_movement_interface::Result::FAILURE_STOP_TRIGGERED;
                         result.additional_information = "Move aborted";
