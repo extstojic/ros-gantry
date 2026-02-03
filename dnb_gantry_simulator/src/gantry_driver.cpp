@@ -151,8 +151,8 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
         result.header.stamp = ros::Time::now();
         result.command_id = cmd.command_id;
         
-        ROS_INFO("Processing command type: %s, pose_type: %s, pose_size: %lu", 
-                 cmd.command_type.c_str(), cmd.pose_type.c_str(), cmd.pose.size());
+        ROS_INFO("Processing command type: %s, pose_type: %s, pose_size: %lu, replace: %d", 
+                 cmd.command_type.c_str(), cmd.pose_type.c_str(), cmd.pose.size(), msg->replace_previous_commands);
         
         // Debug: print all pose values
         std::string pose_str = "Pose values: ";
@@ -160,6 +160,9 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
             pose_str += std::to_string(cmd.pose[i]) + " ";
         }
         ROS_INFO("%s", pose_str.c_str());
+        
+        // Debug: print pose_reference_frame
+        ROS_INFO("Pose reference frame: %s", cmd.pose_reference_frame.c_str());
         
         // Debug: print velocity info
         if (cmd.velocity.size() > 0) {
@@ -203,15 +206,19 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
                 }
                 
                 ROS_INFO("Moving to: x=%.4f, y=%.4f, z=%.4f at speed=%.4f m/s", x, y, z, speed);
+                ROS_INFO("Current robot position: x=%.4f, y=%.4f, z=%.4f", 
+                         controller->getPosition().x, controller->getPosition().y, controller->getPosition().z);
                 
                 controller->setSpeed(speed);
                 if (controller->setTarget(x, y, z)) {
                     if (controller->awaitFinished()) {
                         result.result_code = robot_movement_interface::Result::SUCCESS;
                         result.additional_information = "Move completed";
+                        ROS_INFO("Move completed successfully");
                     } else {
                         result.result_code = robot_movement_interface::Result::FAILURE_STOP_TRIGGERED;
                         result.additional_information = "Move aborted";
+                        ROS_INFO("Move aborted");
                     }
                 } else {
                     result.result_code = robot_movement_interface::Result::FAILURE_OUT_OF_REACH;
