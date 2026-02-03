@@ -11,6 +11,8 @@
 #include <std_srvs/Trigger.h>
 #include <sensor_msgs/JointState.h>
 #include <industrial_msgs/RobotStatus.h>
+#include <robot_movement_interface/CommandList.h>
+#include <robot_movement_interface/Result.h>
 #include <dnb_gantry_simulator/gantry_controller.h>
 #include <dnb_gantry_simulator/MoveGantry.h>
 
@@ -26,6 +28,7 @@ private:
     bool cb_move(dnb_gantry_simulator::MoveGantry::Request &req, dnb_gantry_simulator::MoveGantry::Response &res);
     bool cb_stop(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
     void cb_reset(const std_msgs::String &msg);
+    void cb_command_list(const robot_movement_interface::CommandList::ConstPtr &msg);
     void publishJointStates(GantryPosition position);
 
     ros::NodeHandle nh;
@@ -36,11 +39,13 @@ private:
     ros::ServiceServer srv_stop;
     ros::ServiceServer srv_stop_robot_right_now;
     ros::Subscriber sub_notify_reset_simulation;
+    ros::Subscriber sub_command_list;
     ros::Publisher pub_notify_changed_transforms;
     ros::Publisher pub_joint_states;
     ros::Publisher pub_joint_states_global;
     ros::Publisher pub_status;
     ros::Publisher pub_robot_status;
+    ros::Publisher pub_command_result;
 
     tf2_ros::TransformBroadcaster broadcaster;
     GantryController* controller;

@@ -1,6 +1,8 @@
 #include <dnb_gantry_simulator/gantry_driver.h>
 #include <dnb_msgs/ComponentStatus.h>
 #include <industrial_msgs/RobotStatus.h>
+#include <robot_movement_interface/CommandList.h>
+#include <robot_movement_interface/Result.h>
 
 using namespace simulator;
 
@@ -36,6 +38,10 @@ GantryDriver::GantryDriver(GantryController* controller) {
     pub_joint_states_global = nh.advertise<sensor_msgs::JointState>("/joint_states", 10);  // Global for robot_state_publisher
     pub_status = private_nh.advertise<dnb_msgs::ComponentStatus>("status", 1, true);
     pub_robot_status = nh.advertise<industrial_msgs::RobotStatus>("/robot_status", 10, true);
+    
+    // Robot movement interface (for UI jogging/movement commands)
+    sub_command_list = nh.subscribe("/command_list", 10, &GantryDriver::cb_command_list, this);
+    pub_command_result = nh.advertise<robot_movement_interface::Result>("/command_result", 10);
 
     // Publish component status
     dnb_msgs::ComponentStatus status_msg;
@@ -134,5 +140,64 @@ bool GantryDriver::cb_stop(std_srvs::Trigger::Request &req, std_srvs::Trigger::R
 void GantryDriver::cb_reset(const std_msgs::String &msg) {
     if (msg.data == "" || msg.data == ros::this_node::getName()) {
         controller->reset();
+    }
+}
+
+void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::ConstPtr &msg) {
+    ROS_INFO("Gantry received command list with %lu commands", msg->commands.size());
+    
+    for (const auto& cmd : msg->commands) {
+        robot_movement_interface::Result result;
+        result.header.stamp = ros::Time::now();
+        result.command_id = cmd.command_id;
+        
+        ROS_INFO("Processing command type: %s, pose_type: %s", cmd.command_type.c_str(), cmd.pose_type.c_str());
+        
+        // Handle different command types
+        if (cmd.command_type == "LIN" || cmd.command_type == "PTP" || cmd.command_type == "JOINTS") {
+            // For gantry, we interpret pose as XYZ positions
+            if (cmd.pose.size() >= 3) {
+                double x = cmd.pose[0];
+                double y = cmd.pose[1];
+                double z = cmd.pose[2];
+                
+                // Handle velocity
+                double speed = controller->getLimits().max_speed * 0.5;  // Default 50%
+                if (cmd.velocity.size() > 0 && cmd.velocity[0] > 0) {
+                    if (cmd.velocity_type == "PERCENT" || cmd.velocity_type == "%") {
+                        speed = controller->getLimits().max_speed * cmd.velocity[0] / 100.0;
+                    } else if (cmd.velocity_type == "M/S") {
+                        speed = cmd.velocity[0];
+                    }
+                }
+                
+                ROS_INFO("Moving to: x=%.3f, y=%.3f, z=%.3f at speed=%.3f", x, y, z, speed);
+                
+                controller->setSpeed(speed);
+                if (controller->setTarget(x, y, z)) {
+                    if (controller->awaitFinished()) {
+                        result.result_code = robot_movement_interface::Result::SUCCESS;
+                        result.additional_information = "Move completed";
+                    } else {
+                        result.result_code = robot_movement_interface::Result::FAILURE_STOP_TRIGGERED;
+                        result.additional_information = "Move aborted";
+                    }
+                } else {
+                    result.result_code = robot_movement_interface::Result::FAILURE_OUT_OF_REACH;
+                    result.additional_information = "Target position out of reach";
+                }
+            } else {
+                result.result_code = robot_movement_interface::Result::FAILURE_EXECUTION;
+                result.additional_information = "Invalid pose: need at least 3 values (x, y, z)";
+            }
+        } else {
+            // Unknown command type - just succeed for now
+            ROS_WARN("Unknown command type: %s - treating as no-op", cmd.command_type.c_str());
+            result.result_code = robot_movement_interface::Result::SUCCESS;
+            result.additional_information = "Command type not implemented for gantry";
+        }
+        
+        pub_command_result.publish(result);
+        ROS_INFO("Command %d completed with result code: %d", cmd.command_id, result.result_code);
     }
 }

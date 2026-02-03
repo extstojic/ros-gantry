@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
     tf2_geometry_msgs
     dnb_msgs
     industrial_msgs
+    robot_movement_interface
 )
 
 add_service_files(
