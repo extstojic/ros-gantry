@@ -161,9 +161,6 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
         }
         ROS_INFO("%s", pose_str.c_str());
         
-        // Debug: print pose_reference_frame
-        ROS_INFO("Pose reference frame: %s", cmd.pose_reference_frame.c_str());
-        
         // Debug: print velocity info
         if (cmd.velocity.size() > 0) {
             ROS_INFO("Velocity: %.4f %s", cmd.velocity[0], cmd.velocity_type.c_str());
@@ -206,8 +203,6 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
                 }
                 
                 ROS_INFO("Moving to: x=%.4f, y=%.4f, z=%.4f at speed=%.4f m/s", x, y, z, speed);
-                ROS_INFO("Current robot position: x=%.4f, y=%.4f, z=%.4f", 
-                         controller->getPosition().x, controller->getPosition().y, controller->getPosition().z);
                 
                 controller->setSpeed(speed);
                 if (controller->setTarget(x, y, z)) {
