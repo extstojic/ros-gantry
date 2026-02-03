@@ -38,6 +38,9 @@
 		<rosparam param="source_list">[/dnb_gantry_simulator/joint_states]</rosparam>
 	</node>
 
+	<!-- world to robot_base static transform publisher -->
+	<node args="0 0 0 0 0 0 /world /robot_base 100" name="stfp_world_to_robot_base" pkg="tf" type="static_transform_publisher"/>
+
 	<!-- robot_base to base_link static transform publisher (like nachi driver) -->
 	<node args="0 0 0 0 0 0 /robot_base /base_link 100" name="stfp_robot_base_to_base_link" pkg="tf" type="static_transform_publisher"/>
 
