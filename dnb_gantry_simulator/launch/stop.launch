@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+	<node name="kill_gantry" pkg="rosnode" type="rosnode" args="kill /dnb_gantry_simulator" output="screen"/>
+</launch>

@@ -1,0 +1,28 @@
+package: dnb_gantry_simulator
+name: 'Gantry Robot'
+robot_type: 'gantry'
+dof: 3
+
+robot_data:
+  fixed_frame: 'robot_base'
+  flange_frame: 'tool0'
+  urdf_param: 'robot_description'
+
+joints:
+  - name: x_joint
+    type: prismatic
+    axis: x
+    min: -0.4
+    max: 0.4
+  - name: y_joint
+    type: prismatic
+    axis: y
+    min: -0.3
+    max: 0.3
+  - name: z_joint
+    type: prismatic
+    axis: z
+    min: -0.5
+    max: 0.1
+base_link: robot_base
+tool_link: tool0

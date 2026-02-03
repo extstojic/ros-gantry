@@ -40,3 +40,10 @@
                           joint_z_controller"/>
   
 </launch>
+
+bash
+source /root/dnb_catkin_ws/devel/setup.bash
+roslaunch dnb_gantry_simulator start.launch &
+sleep 2
+rostopic list | grep -E "joint|gantry"
+rostopic echo /dnb_gantry_simulator/joint_states -n 1

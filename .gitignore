@@ -40,3 +40,6 @@ wheels/
 
 # Gazebo
 .gazebo/
+# Reference drivers (local only)
+dnb_linear_axis_simulator/
+dnb_ros_driver_nachi/

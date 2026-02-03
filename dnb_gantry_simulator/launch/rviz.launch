@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+	<!-- Load URDF robot model -->
+	<param name="robot_description" command="$(find xacro)/xacro '$(find dnb_gantry_simulator)/urdf/gantry.urdf'"/>
+
+	<!-- Robot state publisher -->
+	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen"/>
+
+	<!-- Joint state publisher GUI for manual joint control -->
+	<node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" output="screen"/>
+
+	<!-- TF from world to robot_base -->
+	<node args="0 0 0.5 0 0 0 world robot_base 100" name="stfp_world_to_robot_base" pkg="tf" type="static_transform_publisher"/>
+
+	<!-- RViz -->
+	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find dnb_gantry_simulator)/config/gantry.rviz" output="screen"/>
+</launch>

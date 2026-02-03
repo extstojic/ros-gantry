@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="min_x" default="-0.4"/>
+	<arg name="max_x" default="0.4"/>
+	<arg name="min_y" default="-0.3"/>
+	<arg name="max_y" default="0.3"/>
+	<arg name="min_z" default="-0.5"/>
+	<arg name="max_z" default="0.5"/>
+	<arg name="max_speed" default="0.2"/>
+
+	<!-- Load URDF robot model -->
+	<param name="robot_description" command="$(find xacro)/xacro '$(find dnb_gantry_simulator)/urdf/gantry.urdf'"/>
+
+	<!-- Gantry Simulator Node (standalone, no Gazebo physics) -->
+	<node name="dnb_gantry_simulator" pkg="dnb_gantry_simulator" type="dnb_gantry_simulator_node" output="screen">
+		<param name="min_x" value="$(arg min_x)"/>
+		<param name="max_x" value="$(arg max_x)"/>
+		<param name="min_y" value="$(arg min_y)"/>
+		<param name="max_y" value="$(arg max_y)"/>
+		<param name="min_z" value="$(arg min_z)"/>
+		<param name="max_z" value="$(arg max_z)"/>
+		<param name="max_speed" value="$(arg max_speed)"/>
+	</node>
+
+	<!-- TF from world to robot_base -->
+	<node args="0 0 0.5 0 0 0 world robot_base 100" name="stfp_world_to_robot_base" pkg="tf" type="static_transform_publisher"/>
+</launch>
