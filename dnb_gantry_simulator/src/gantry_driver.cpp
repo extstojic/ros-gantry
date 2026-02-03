@@ -22,10 +22,15 @@ GantryDriver::GantryDriver(GantryController* controller) {
     double max_z = private_nh.param("max_z", 0.5);
     double max_speed = private_nh.param("max_speed", 0.2);
 
+    ROS_INFO("Gantry limits: X[%.2f, %.2f] Y[%.2f, %.2f] Z[%.2f, %.2f] MaxSpeed: %.2f",
+             min_x, max_x, min_y, max_y, min_z, max_z, max_speed);
+
     // Initialize controller with limits and initial position at center
     GantryLimits limits = {min_x, max_x, min_y, max_y, min_z, max_z, 0.0, max_speed};
     GantryPosition init_pos = {0.0, 0.0, 0.0};
     controller->initialize(limits, init_pos, max_speed * 0.5);
+
+    ROS_INFO("Gantry initialized at home position: x=0.0, y=0.0, z=0.0");
 
     stop_nh.setCallbackQueue(&stop_queue);
 
