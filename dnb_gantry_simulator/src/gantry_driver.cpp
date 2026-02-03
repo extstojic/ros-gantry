@@ -3,6 +3,7 @@
 #include <industrial_msgs/RobotStatus.h>
 #include <robot_movement_interface/CommandList.h>
 #include <robot_movement_interface/Result.h>
+#include <robot_movement_interface/GetFK.h>
 
 using namespace simulator;
 
@@ -38,6 +39,7 @@ GantryDriver::GantryDriver(GantryController* controller) {
     srv_move = private_nh.advertiseService("move", &GantryDriver::cb_move, this);
     srv_stop = stop_nh.advertiseService("stop", &GantryDriver::cb_stop, this);
     srv_stop_robot_right_now = nh.advertiseService("stop_robot_right_now", &GantryDriver::cb_stop, this);  // Global stop service
+    srv_get_fk = nh.advertiseService("get_fk", &GantryDriver::cb_get_fk, this);  // Forward kinematics for UI markers
     pub_notify_changed_transforms = nh.advertise<std_msgs::Empty>("/notify_changed_system_transformations", 1);
     pub_joint_states = private_nh.advertise<sensor_msgs::JointState>("joint_states", 10);
     pub_joint_states_global = nh.advertise<sensor_msgs::JointState>("/joint_states", 10);  // Global for robot_state_publisher
@@ -243,4 +245,36 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
         pub_command_result.publish(result);
         ROS_INFO("Command %d completed with result code: %d", cmd.command_id, result.result_code);
     }
+}
+
+bool GantryDriver::cb_get_fk(robot_movement_interface::GetFK::Request &req, robot_movement_interface::GetFK::Response &res) {
+    // Forward kinematics for gantry: direct mapping from joints to pose
+    // For a prismatic gantry, joint positions directly correspond to TCP position
+    // joints[0] = x position, joints[1] = y position, joints[2] = z position
+    
+    if (req.joints.size() < 3) {
+        ROS_WARN("FK: Invalid joint array size %lu, expected 3", req.joints.size());
+        res.error = 1;  // Error code
+        return true;
+    }
+    
+    // Get current position from controller
+    GantryPosition pos = controller->getCurrentPosition();
+    
+    // Set pose output - for gantry, simply map joint values to position
+    // Using current position from controller instead of request joints
+    robot_movement_interface::EulerFrame pose;
+    pose.x = pos.x;
+    pose.y = pos.y;
+    pose.z = pos.z;
+    pose.alpha = 0.0;  // No rotation for gantry
+    pose.beta = 0.0;
+    pose.gamma = 0.0;
+    
+    res.pose = pose;
+    res.error = 0;  // Success
+    
+    ROS_DEBUG("FK: Returning pose [%.4f, %.4f, %.4f, 0, 0, 0]", pos.x, pos.y, pos.z);
+    
+    return true;
 }
