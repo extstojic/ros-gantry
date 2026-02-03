@@ -5,6 +5,9 @@ dof: 3
 
 update_rate: 5.0
 
+# Tool frame topic for interactive marker initialization
+tool_frame_topic: '/dnb_gantry_simulator/tool_frame'
+
 # Step translation
 step_translation: 0.01  # 10 mm
 step_translation_factor: 0.99

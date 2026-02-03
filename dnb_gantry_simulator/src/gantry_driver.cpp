@@ -49,7 +49,7 @@ GantryDriver::GantryDriver(GantryController* controller) {
     // Robot movement interface (for UI jogging/movement commands)
     sub_command_list = nh.subscribe("/command_list", 10, &GantryDriver::cb_command_list, this);
     pub_command_result = nh.advertise<robot_movement_interface::Result>("/command_result", 10);
-    pub_dnb_tool_frame = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame", 100, true);  // Latched, high queue for priority over tool_manager
+    pub_dnb_tool_frame = private_nh.advertise<robot_movement_interface::EulerFrame>("tool_frame", 100, true);  // Latched tool frame for marker initialization
 
     // Publish component status
     dnb_msgs::ComponentStatus status_msg;
