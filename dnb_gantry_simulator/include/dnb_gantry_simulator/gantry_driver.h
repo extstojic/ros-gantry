@@ -33,6 +33,7 @@ private:
     bool cb_get_marker_init(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
     void cb_reset(const std_msgs::String &msg);
     void cb_command_list(const robot_movement_interface::CommandList::ConstPtr &msg);
+    void cb_publish_tool_frame(const ros::TimerEvent& event);
     void publishJointStates(GantryPosition position);
 
     ros::NodeHandle nh;
@@ -53,6 +54,8 @@ private:
     ros::Publisher pub_robot_status;
     ros::Publisher pub_command_result;
     ros::Publisher pub_dnb_tool_frame;
+    ros::Publisher pub_dnb_tool_frame_global;
+    ros::Timer pub_tool_frame_timer;
 
     tf2_ros::TransformBroadcaster broadcaster;
     GantryController* controller;
