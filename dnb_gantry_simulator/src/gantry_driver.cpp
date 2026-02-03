@@ -40,6 +40,7 @@ GantryDriver::GantryDriver(GantryController* controller) {
     srv_stop = stop_nh.advertiseService("stop", &GantryDriver::cb_stop, this);
     srv_stop_robot_right_now = nh.advertiseService("stop_robot_right_now", &GantryDriver::cb_stop, this);  // Global stop service
     srv_get_fk = private_nh.advertiseService("get_fk", &GantryDriver::cb_get_fk, this);  // Forward kinematics for UI markers
+    srv_get_marker_init = private_nh.advertiseService("get_marker_init", &GantryDriver::cb_get_marker_init, this);  // Marker initialization with current position
     pub_notify_changed_transforms = nh.advertise<std_msgs::Empty>("/notify_changed_system_transformations", 1);
     pub_joint_states = private_nh.advertise<sensor_msgs::JointState>("joint_states", 10);
     pub_joint_states_global = nh.advertise<sensor_msgs::JointState>("/joint_states", 10);  // Global for robot_state_publisher
@@ -292,6 +293,21 @@ bool GantryDriver::cb_get_fk(robot_movement_interface::GetFK::Request &req, robo
     res.error = 0;  // Success
     
     ROS_DEBUG("FK: Computed pose [%.4f, %.4f, %.4f, 0, 0, 0] from joints", res.pose.x, res.pose.y, res.pose.z);
+    
+    return true;
+}
+
+bool GantryDriver::cb_get_marker_init(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res) {
+    // Return current robot position for interactive marker initialization
+    // This service is called by drag&bot to set the initial position of the interactive marker
+    // Without this, the marker would always initialize at [0, 0, 0]
+    
+    GantryPosition pos = controller->getCurrentPosition();
+    
+    ROS_INFO("Marker initialization requested - returning current position [%.4f, %.4f, %.4f]", pos.x, pos.y, pos.z);
+    
+    res.success = true;
+    res.message = std::to_string(pos.x) + "," + std::to_string(pos.y) + "," + std::to_string(pos.z);
     
     return true;
 }

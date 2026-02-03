@@ -30,6 +30,7 @@ private:
     bool cb_move(dnb_gantry_simulator::MoveGantry::Request &req, dnb_gantry_simulator::MoveGantry::Response &res);
     bool cb_stop(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
     bool cb_get_fk(robot_movement_interface::GetFK::Request &req, robot_movement_interface::GetFK::Response &res);
+    bool cb_get_marker_init(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
     void cb_reset(const std_msgs::String &msg);
     void cb_command_list(const robot_movement_interface::CommandList::ConstPtr &msg);
     void publishJointStates(GantryPosition position);
@@ -42,6 +43,7 @@ private:
     ros::ServiceServer srv_stop;
     ros::ServiceServer srv_stop_robot_right_now;
     ros::ServiceServer srv_get_fk;
+    ros::ServiceServer srv_get_marker_init;
     ros::Subscriber sub_notify_reset_simulation;
     ros::Subscriber sub_command_list;
     ros::Publisher pub_notify_changed_transforms;
