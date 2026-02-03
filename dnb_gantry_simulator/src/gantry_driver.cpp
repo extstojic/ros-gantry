@@ -151,7 +151,20 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
         result.header.stamp = ros::Time::now();
         result.command_id = cmd.command_id;
         
-        ROS_INFO("Processing command type: %s, pose_type: %s", cmd.command_type.c_str(), cmd.pose_type.c_str());
+        ROS_INFO("Processing command type: %s, pose_type: %s, pose_size: %lu", 
+                 cmd.command_type.c_str(), cmd.pose_type.c_str(), cmd.pose.size());
+        
+        // Debug: print all pose values
+        std::string pose_str = "Pose values: ";
+        for (size_t i = 0; i < cmd.pose.size(); i++) {
+            pose_str += std::to_string(cmd.pose[i]) + " ";
+        }
+        ROS_INFO("%s", pose_str.c_str());
+        
+        // Debug: print velocity info
+        if (cmd.velocity.size() > 0) {
+            ROS_INFO("Velocity: %.4f %s", cmd.velocity[0], cmd.velocity_type.c_str());
+        }
         
         // Handle different command types
         if (cmd.command_type == "LIN" || cmd.command_type == "PTP" || cmd.command_type == "JOINTS") {
@@ -161,6 +174,15 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
                 double y = cmd.pose[1];
                 double z = cmd.pose[2];
                 
+                // Check if values might be in millimeters (drag&bot often uses mm)
+                // If values are > 10, assume millimeters and convert to meters
+                if (std::abs(x) > 10 || std::abs(y) > 10 || std::abs(z) > 10) {
+                    ROS_INFO("Converting from mm to m (values seem to be in mm)");
+                    x /= 1000.0;
+                    y /= 1000.0;
+                    z /= 1000.0;
+                }
+                
                 // Handle velocity
                 double speed = controller->getLimits().max_speed * 0.5;  // Default 50%
                 if (cmd.velocity.size() > 0 && cmd.velocity[0] > 0) {
@@ -168,10 +190,12 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
                         speed = controller->getLimits().max_speed * cmd.velocity[0] / 100.0;
                     } else if (cmd.velocity_type == "M/S") {
                         speed = cmd.velocity[0];
+                    } else if (cmd.velocity_type == "MM/S") {
+                        speed = cmd.velocity[0] / 1000.0;  // Convert mm/s to m/s
                     }
                 }
                 
-                ROS_INFO("Moving to: x=%.3f, y=%.3f, z=%.3f at speed=%.3f", x, y, z, speed);
+                ROS_INFO("Moving to: x=%.4f, y=%.4f, z=%.4f at speed=%.4f m/s", x, y, z, speed);
                 
                 controller->setSpeed(speed);
                 if (controller->setTarget(x, y, z)) {
@@ -185,6 +209,10 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
                 } else {
                     result.result_code = robot_movement_interface::Result::FAILURE_OUT_OF_REACH;
                     result.additional_information = "Target position out of reach";
+                    ROS_WARN("Target out of reach! Limits: x[%.2f,%.2f] y[%.2f,%.2f] z[%.2f,%.2f]",
+                             controller->getLimits().min_x, controller->getLimits().max_x,
+                             controller->getLimits().min_y, controller->getLimits().max_y,
+                             controller->getLimits().min_z, controller->getLimits().max_z);
                 }
             } else {
                 result.result_code = robot_movement_interface::Result::FAILURE_EXECUTION;
