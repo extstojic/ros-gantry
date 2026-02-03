@@ -263,29 +263,35 @@ bool GantryDriver::cb_get_fk(robot_movement_interface::GetFK::Request &req, robo
     // For a prismatic gantry, joint positions directly correspond to TCP position
     // joints[0] = x position, joints[1] = y position, joints[2] = z position
     
-    if (req.joints.size() < 3) {
-        ROS_WARN("FK: Invalid joint array size %lu, expected 3", req.joints.size());
-        res.error = 1;  // Error code
-        return true;
-    }
-    
     // Get current position from controller
     GantryPosition pos = controller->getCurrentPosition();
     
-    // Set pose output - for gantry, simply map joint values to position
-    // Using current position from controller instead of request joints
-    robot_movement_interface::EulerFrame pose;
-    pose.x = pos.x;
-    pose.y = pos.y;
-    pose.z = pos.z;
-    pose.alpha = 0.0;  // No rotation for gantry
-    pose.beta = 0.0;
-    pose.gamma = 0.0;
+    // If joints array is empty or has fewer than 3 elements, return current position
+    // This is used by drag&bot to initialize the interactive marker
+    if (req.joints.size() == 0 || req.joints.size() < 3) {
+        ROS_DEBUG("FK: Empty/incomplete joints array - returning current position [%.4f, %.4f, %.4f]", pos.x, pos.y, pos.z);
+        res.pose.x = pos.x;
+        res.pose.y = pos.y;
+        res.pose.z = pos.z;
+        res.pose.alpha = 0.0;
+        res.pose.beta = 0.0;
+        res.pose.gamma = 0.0;
+        res.error = 0;  // Success
+        return true;
+    }
     
-    res.pose = pose;
+    // If joints provided, compute FK from those joint values
+    // For gantry: joints directly map to cartesian position
+    res.pose.x = req.joints[0];
+    res.pose.y = req.joints[1];
+    res.pose.z = req.joints[2];
+    res.pose.alpha = 0.0;  // No rotation for gantry
+    res.pose.beta = 0.0;
+    res.pose.gamma = 0.0;
+    
     res.error = 0;  // Success
     
-    ROS_DEBUG("FK: Returning pose [%.4f, %.4f, %.4f, 0, 0, 0]", pos.x, pos.y, pos.z);
+    ROS_DEBUG("FK: Computed pose [%.4f, %.4f, %.4f, 0, 0, 0] from joints", res.pose.x, res.pose.y, res.pose.z);
     
     return true;
 }
