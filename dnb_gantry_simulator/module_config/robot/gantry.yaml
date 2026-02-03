@@ -3,11 +3,83 @@ name: 'Gantry Robot'
 robot_type: 'gantry'
 dof: 3
 
+update_rate: 5.0
+
+# Step translation
+step_translation: 0.01  # 10 mm
+step_translation_factor: 0.99
+
+# Step rotation
+step_rotation: 0.1745  # 10 degrees (not used for gantry but needed for schema)
+step_rotation_factor: 0.99
+
+# Step joints
+step_joints: 0.01  # 10 mm for prismatic joints
+
+# Joints delta
+joints_delta_replace: false
+joints_delta_command_type: 'LIN'
+joints_delta_velocity_type: 'M/S'
+joints_delta_acceleration_type: 'PERCENT'
+joints_delta_blending_type: 'PERCENT'
+joints_delta_velocity: 0.05
+joints_delta_acceleration: 100
+joints_delta_blending: 0
+
+# Joints goal
+joints_goal_replace: false
+joints_goal_command_type: 'PTP'
+joints_goal_velocity_type: 'M/S'
+joints_goal_acceleration_type: 'PERCENT'
+joints_goal_blending_type: 'PERCENT'
+joints_goal_velocity: 0.1
+joints_goal_acceleration: 100
+joints_goal_blending: 0
+
+# Cartesian delta Translation
+cartesian_delta_replace: false
+cartesian_delta_command_type: 'LIN'
+cartesian_delta_velocity_type: 'M/S'
+cartesian_delta_acceleration_type: 'PERCENT'
+cartesian_delta_blending_type: 'PERCENT'
+cartesian_delta_velocity: 0.05
+cartesian_delta_acceleration: 100
+cartesian_delta_blending: 100
+
+# Cartesian delta Rotation (not used for gantry)
+cartesian_delta_command_type_rot: 'LIN'
+cartesian_delta_velocity_type_rot: 'DEG/S'
+cartesian_delta_acceleration_type_rot: 'PERCENT'
+cartesian_delta_blending_type: 'PERCENT'
+cartesian_delta_velocity_rot: 15
+cartesian_delta_acceleration_rot: 100
+cartesian_delta_blending_rot: 100
+
+# General goal settings
+cartesian_goal_replace: false
+cartesian_blending_type: 'PERCENT'
+cartesian_blending: 0.0
+
+# Cartesian goal PTP
+cartesian_goal_command_type_rotational_movement: 'PTP'
+cartesian_goal_command_type_translational_movement: 'PTP'
+cartesian_goal_velocity_type: 'M/S'
+cartesian_goal_acceleration_type: 'PERCENT'
+cartesian_goal_velocity: 0.1
+cartesian_goal_acceleration: 100
+
+# Cartesian goal LIN
+cartesian_goal_command_type_rotational_movement_lin: 'LIN'
+cartesian_goal_command_type_translational_movement_lin: 'LIN'
+cartesian_goal_velocity_type_lin: 'M/S'
+cartesian_goal_acceleration_type_lin: 'PERCENT'
+cartesian_goal_velocity_lin: 0.1
+cartesian_goal_acceleration_lin: 100
+
 robot_data:
   fixed_frame: 'robot_base'
   flange_frame: 'tool0'
   urdf_param: 'robot_description'
-  # For Cartesian-direct robots (like gantries), we don't need FK/IK conversion
   robot_class: 'Cartesian'
 
 joints:

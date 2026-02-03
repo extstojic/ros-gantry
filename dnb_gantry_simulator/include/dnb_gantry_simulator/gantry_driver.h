@@ -14,6 +14,7 @@
 #include <robot_movement_interface/CommandList.h>
 #include <robot_movement_interface/Result.h>
 #include <robot_movement_interface/GetFK.h>
+#include <robot_movement_interface/EulerFrame.h>
 #include <dnb_gantry_simulator/gantry_controller.h>
 #include <dnb_gantry_simulator/MoveGantry.h>
 
@@ -49,6 +50,7 @@ private:
     ros::Publisher pub_status;
     ros::Publisher pub_robot_status;
     ros::Publisher pub_command_result;
+    ros::Publisher pub_dnb_tool_frame;
 
     tf2_ros::TransformBroadcaster broadcaster;
     GantryController* controller;

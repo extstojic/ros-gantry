@@ -49,6 +49,7 @@ GantryDriver::GantryDriver(GantryController* controller) {
     // Robot movement interface (for UI jogging/movement commands)
     sub_command_list = nh.subscribe("/command_list", 10, &GantryDriver::cb_command_list, this);
     pub_command_result = nh.advertise<robot_movement_interface::Result>("/command_result", 10);
+    pub_dnb_tool_frame = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame", 10);  // For drag&bot remote control
 
     // Publish component status
     dnb_msgs::ComponentStatus status_msg;
@@ -102,6 +103,16 @@ void GantryDriver::cb_update(GantryPosition position, bool moved) {
     tf.transform.translation.z = position.z;
     tf.transform.rotation.w = 1.0;
     broadcaster.sendTransform(tf);
+
+    // Publish TCP pose for drag&bot remote control UI marker initialization
+    robot_movement_interface::EulerFrame tcp_pose;
+    tcp_pose.x = position.x;
+    tcp_pose.y = position.y;
+    tcp_pose.z = position.z;
+    tcp_pose.alpha = 0.0;  // No rotation for gantry
+    tcp_pose.beta = 0.0;
+    tcp_pose.gamma = 0.0;
+    pub_dnb_tool_frame.publish(tcp_pose);
 
     stop_queue.callAvailable(ros::WallDuration());
 
