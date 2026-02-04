@@ -55,6 +55,7 @@ private:
     ros::Publisher pub_command_result;
     ros::Publisher pub_dnb_tool_frame;
     ros::Publisher pub_dnb_tool_frame_global;
+    ros::Publisher pub_dnb_tool_frame_robotbase;  // For delta_interface jog commands
     ros::Timer position_update_timer;
 
     tf2_ros::TransformBroadcaster broadcaster;

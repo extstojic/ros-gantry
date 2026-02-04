@@ -54,6 +54,9 @@ GantryDriver::GantryDriver(GantryController* controller) {
     
     // Also publish to global topic for drag&bot marker to use directly
     pub_dnb_tool_frame_global = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame", 100, true);
+    
+    // CRITICAL: delta_interface_v3.py subscribes to this topic for current_pose used in jog calculations
+    pub_dnb_tool_frame_robotbase = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame_robotbase", 100, true);
 
     // Publish component status
     dnb_msgs::ComponentStatus status_msg;
@@ -85,6 +88,7 @@ GantryDriver::GantryDriver(GantryController* controller) {
     init_tcp.gamma = 0.0;
     pub_dnb_tool_frame.publish(init_tcp);
     pub_dnb_tool_frame_global.publish(init_tcp);
+    pub_dnb_tool_frame_robotbase.publish(init_tcp);  // For delta_interface jog commands
     
     // Start a timer to publish position continuously so marker always reads fresh values
     position_update_timer = private_nh.createTimer(ros::Duration(0.1), 
@@ -106,6 +110,7 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     tcp_pose.gamma = 0.0;
     pub_dnb_tool_frame.publish(tcp_pose);
     pub_dnb_tool_frame_global.publish(tcp_pose);
+    pub_dnb_tool_frame_robotbase.publish(tcp_pose);  // For delta_interface jog commands
 }
 
 void GantryDriver::publishJointStates(GantryPosition position) {
@@ -148,6 +153,7 @@ void GantryDriver::cb_update(GantryPosition position, bool moved) {
     tcp_pose.gamma = 0.0;
     pub_dnb_tool_frame.publish(tcp_pose);
     pub_dnb_tool_frame_global.publish(tcp_pose);  // Also publish to global topic for marker
+    pub_dnb_tool_frame_robotbase.publish(tcp_pose);  // For delta_interface jog commands
 
     stop_queue.callAvailable(ros::WallDuration());
 
