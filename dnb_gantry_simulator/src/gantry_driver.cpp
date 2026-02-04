@@ -199,23 +199,11 @@ void GantryDriver::cb_reset(const std_msgs::String &msg) {
 
 void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::ConstPtr &msg) {
     ROS_INFO("Gantry received command list with %lu commands", msg->commands.size());
-    ROS_INFO("Contents of CommandList message:");
-    ROS_INFO("Header: seq=%u, stamp=%.4f, frame_id=%s", 
-             msg->header.seq, msg->header.stamp.toSec(), msg->header.frame_id.c_str());
-    ROS_INFO("Replace previous commands: %d", msg->replace_previous_commands);
-    // Additional debug: print any high-level fields the UI may include (pose_reference and reference frame)
-    for (size_t i = 0; i < msg->commands.size(); ++i) {
-        const auto &c = msg->commands[i];
-        ROS_INFO("Command[%zu] id=%d type=%s", i, c.command_id, c.command_type.c_str());
-        // pose_reference (string) - if present in message
-        ROS_INFO("Command[%zu] pose_reference: %s", i, c.pose_reference.c_str());
-        // pose_reference_frame (if populated) - try to print common fields
-        ROS_INFO("Command[%zu] pose_reference_frame: x=%.4f y=%.4f z=%.4f alpha=%.4f beta=%.4f gamma=%.4f", 
-                 i,
-                 c.pose_reference_frame.x, c.pose_reference_frame.y, c.pose_reference_frame.z,
-                 c.pose_reference_frame.alpha, c.pose_reference_frame.beta, c.pose_reference_frame.gamma);
-    }
-    
+    // Print the entire CommandList message using ROS_INFO_STREAM for debugging
+    std::stringstream ss;
+    ss << *msg;
+    ROS_INFO_STREAM("Whole command list printout:\n" << ss.str());
+
     for (const auto& cmd : msg->commands) {
         robot_movement_interface::Result result;
         result.header.stamp = ros::Time::now();
