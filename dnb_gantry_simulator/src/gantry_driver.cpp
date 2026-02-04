@@ -199,6 +199,10 @@ void GantryDriver::cb_reset(const std_msgs::String &msg) {
 
 void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::ConstPtr &msg) {
     ROS_INFO("Gantry received command list with %lu commands", msg->commands.size());
+    ROS_INFO("Contents of CommandList message:");
+    ROSINFO("Header: seq=%u, stamp=%.4f, frame_id=%s", 
+             msg->header.seq, msg->header.stamp.toSec(), msg->header.frame_id.c_str());
+    ROS_INFO("Replace previous commands: %d", msg->replace_previous_commands);
     
     for (const auto& cmd : msg->commands) {
         robot_movement_interface::Result result;
