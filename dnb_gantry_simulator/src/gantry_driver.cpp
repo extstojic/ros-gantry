@@ -85,9 +85,27 @@ GantryDriver::GantryDriver(GantryController* controller) {
     init_tcp.gamma = 0.0;
     pub_dnb_tool_frame.publish(init_tcp);
     pub_dnb_tool_frame_global.publish(init_tcp);
+    
+    // Start a timer to publish position continuously so marker always reads fresh values
+    position_update_timer = private_nh.createTimer(ros::Duration(0.1), 
+        &GantryDriver::cb_position_update_timer, this);
 }
 
 GantryDriver::~GantryDriver() {
+}
+
+void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
+    // Publish current position frequently so marker always reads fresh values
+    GantryPosition current_pos = controller->getCurrentPosition();
+    robot_movement_interface::EulerFrame tcp_pose;
+    tcp_pose.x = current_pos.x;
+    tcp_pose.y = current_pos.y;
+    tcp_pose.z = current_pos.z;
+    tcp_pose.alpha = 0.0;
+    tcp_pose.beta = 0.0;
+    tcp_pose.gamma = 0.0;
+    pub_dnb_tool_frame.publish(tcp_pose);
+    pub_dnb_tool_frame_global.publish(tcp_pose);
 }
 
 void GantryDriver::publishJointStates(GantryPosition position) {
