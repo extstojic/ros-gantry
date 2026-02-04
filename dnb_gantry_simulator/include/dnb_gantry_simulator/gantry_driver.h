@@ -36,6 +36,7 @@ private:
     void cb_reset(const std_msgs::String &msg);
     void cb_command_list(const robot_movement_interface::CommandList::ConstPtr &msg);
     void cb_position_update_timer(const ros::TimerEvent &event);
+    void cb_process_command_timer(const ros::TimerEvent &event);
     void publishJointStates(GantryPosition position);
 
     ros::NodeHandle nh;
