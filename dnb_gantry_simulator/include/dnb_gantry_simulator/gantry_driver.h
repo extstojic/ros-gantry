@@ -15,6 +15,8 @@
 #include <robot_movement_interface/Result.h>
 #include <robot_movement_interface/GetFK.h>
 #include <robot_movement_interface/EulerFrame.h>
+#include <robot_movement_interface/Command.h>
+#include <deque>
 #include <dnb_gantry_simulator/gantry_controller.h>
 #include <dnb_gantry_simulator/MoveGantry.h>
 
@@ -47,6 +49,9 @@ private:
     ros::ServiceServer srv_get_marker_init;
     ros::Subscriber sub_notify_reset_simulation;
     ros::Subscriber sub_command_list;
+    std::deque<robot_movement_interface::Command> command_queue;
+    ros::Timer process_command_timer;
+    bool processing_command = false;
     ros::Publisher pub_notify_changed_transforms;
     ros::Publisher pub_joint_states;
     ros::Publisher pub_joint_states_global;

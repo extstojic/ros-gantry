@@ -93,6 +93,9 @@ GantryDriver::GantryDriver(GantryController* controller) {
     // Start a timer to publish position continuously so marker always reads fresh values
     position_update_timer = private_nh.createTimer(ros::Duration(0.1), 
         &GantryDriver::cb_position_update_timer, this);
+
+    // Start a timer to process queued commands (behaviour similar to Nachi driver)
+    process_command_timer = private_nh.createTimer(ros::Duration(0.05), &GantryDriver::cb_process_command_timer, this);
 }
 
 GantryDriver::~GantryDriver() {
@@ -204,120 +207,92 @@ void GantryDriver::cb_reset(const std_msgs::String &msg) {
 }
 
 void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::ConstPtr &msg) {
-    ROS_INFO("Gantry received command list with %lu commands", msg->commands.size());
-    // Print the entire CommandList message using ROS_INFO_STREAM for debugging
-    std::stringstream ss;
-    ss << *msg;
-    ROS_INFO_STREAM("Whole command list printout:\n" << ss.str());
+    ROS_INFO("Gantry received command list with %lu commands (queued)", msg->commands.size());
 
-    for (const auto& cmd : msg->commands) {
-        robot_movement_interface::Result result;
-        result.header.stamp = ros::Time::now();
-        result.command_id = cmd.command_id;
-        
-        ROS_INFO("Processing command type: %s, pose_type: %s, pose_size: %lu, replace: %d", 
-                 cmd.command_type.c_str(), cmd.pose_type.c_str(), cmd.pose.size(), msg->replace_previous_commands);
-        
-        // Debug: print all pose values
-        std::string pose_str = "Pose values: ";
-        for (size_t i = 0; i < cmd.pose.size(); i++) {
-            pose_str += std::to_string(cmd.pose[i]) + " ";
-        }
-        ROS_INFO("%s", pose_str.c_str());
-        
-        // Debug: print velocity info
-        if (cmd.velocity.size() > 0) {
-            ROS_INFO("Velocity: %.4f %s", cmd.velocity[0], cmd.velocity_type.c_str());
-        }
-        
-        // Handle different command types
-        // Note: UI jog commands may have empty command_type, treat them as LIN
-        std::string cmd_type = cmd.command_type;
-        if (cmd_type.empty()) {
-            cmd_type = "LIN";  // Default to LIN for jog commands
-            ROS_INFO("Empty command_type, defaulting to LIN");
-        }
-        
-        if (cmd_type == "LIN" || cmd_type == "PTP" || cmd_type == "JOINTS") {
-            // For gantry, we interpret pose as XYZ positions
-            if (cmd.pose.size() >= 3) {
-                double x = cmd.pose[0];
-                double y = cmd.pose[1];
-                double z = cmd.pose[2];
-                ROS_INFO("RECIEVED X value is %.4f, Y value is %.4f, Z value is %.4f", x, y, z);
-                // Check if values might be in millimeters (drag&bot often uses mm)
-                // If values are > 10, assume millimeters and convert to meters
-                if (std::abs(x) > 10 || std::abs(y) > 10 || std::abs(z) > 10) {
-                    ROS_INFO("Converting from mm to m (values seem to be in mm)");
-                    x /= 1000.0;
-                    y /= 1000.0;
-                    z /= 1000.0;
-                }
-                
-                // Check if this is a delta/relative movement (jog command)
-                // Jog buttons send deltas with replace=false, so add to current position
-                if (!msg->replace_previous_commands) {
-                    GantryPosition current = controller->getCurrentPosition();
-                    ROS_INFO("Relative movement (delta): pose=[%.4f, %.4f, %.4f] + current=[%.4f, %.4f, %.4f]", 
-                             x, y, z, current.x, current.y, current.z);
-                    x += current.x;
-                    y += current.y;
-                    z += current.z;
-                    ROS_INFO("Final target after delta: x=%.4f, y=%.4f, z=%.4f", x, y, z);
-                }
+    // If replace flag is set, clear pending commands
+    if (msg->replace_previous_commands) {
+        command_queue.clear();
+        ROS_INFO("Gantry: replace_previous_commands=true -> cleared command_queue");
+    }
 
-                // Handle velocity
-                double speed = controller->getLimits().max_speed * 0.5;  // Default 50%
-                if (cmd.velocity.size() > 0 && cmd.velocity[0] > 0) {
-                    if (cmd.velocity_type == "PERCENT" || cmd.velocity_type == "%") {
-                        speed = controller->getLimits().max_speed * cmd.velocity[0] / 100.0;
-                    } else if (cmd.velocity_type == "M/S") {
-                        speed = cmd.velocity[0];
-                    } else if (cmd.velocity_type == "MM/S") {
-                        speed = cmd.velocity[0] / 1000.0;  // Convert mm/s to m/s
-                    }
+    // Append incoming commands to internal queue (Nachi-style behaviour)
+    for (const auto &cmd : msg->commands) {
+        command_queue.push_back(cmd);
+    }
+}
+
+// Timer: process pending commands sequentially
+void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
+    if (processing_command) return; // still executing
+    if (command_queue.empty()) return;
+
+    // Pop front and execute
+    robot_movement_interface::Command cmd = command_queue.front();
+    command_queue.pop_front();
+
+    processing_command = true;
+
+    robot_movement_interface::Result result;
+    result.header.stamp = ros::Time::now();
+    result.command_id = cmd.command_id;
+
+    // Basic handling similar to original logic
+    std::string cmd_type = cmd.command_type;
+    if (cmd_type.empty()) cmd_type = "LIN";
+
+    if (cmd_type == "LIN" || cmd_type == "PTP" || cmd_type == "JOINTS") {
+        if (cmd.pose.size() >= 3) {
+            double x = cmd.pose[0];
+            double y = cmd.pose[1];
+            double z = cmd.pose[2];
+
+            // Convert from mm to m if necessary
+            if (std::abs(x) > 10 || std::abs(y) > 10 || std::abs(z) > 10) {
+                x /= 1000.0; y /= 1000.0; z /= 1000.0;
+            }
+
+            // If this was intended as relative (jog), remote-control uses replace=false to indicate
+            // However we cannot see the original CommandList replace flag here; the remote-control
+            // typically encodes the absolute target when publishing — we assume cmd.pose contains proper target
+
+            // Determine speed
+            double speed = controller->getLimits().max_speed * 0.5; // default
+            if (cmd.velocity.size() > 0 && cmd.velocity[0] > 0) {
+                if (cmd.velocity_type == "PERCENT" || cmd.velocity_type == "%") {
+                    speed = controller->getLimits().max_speed * cmd.velocity[0] / 100.0;
+                } else if (cmd.velocity_type == "M/S") {
+                    speed = cmd.velocity[0];
+                } else if (cmd.velocity_type == "MM/S") {
+                    speed = cmd.velocity[0] / 1000.0;
                 }
-                
-                ROS_INFO("Moving to: x=%.4f, y=%.4f, z=%.4f at speed=%.4f m/s", x, y, z, speed);
-                
-                controller->setSpeed(speed);
-                if (controller->setTarget(x, y, z)) {
-                    if (controller->awaitFinished()) {
-                        result.result_code = robot_movement_interface::Result::SUCCESS;
-                        result.additional_information = "Move completed";
-                        ROS_INFO("Move completed successfully");
-                        
-                        // Explicitly publish the new position after movement
-                        GantryPosition final_pos = controller->getCurrentPosition();
-                        ROS_INFO("Publishing final position: x=%.4f, y=%.4f, z=%.4f", final_pos.x, final_pos.y, final_pos.z);
-                        cb_update(final_pos, true);  // true = position changed
-                    } else {
-                        result.result_code = robot_movement_interface::Result::FAILURE_STOP_TRIGGERED;
-                        result.additional_information = "Move aborted";
-                        ROS_INFO("Move aborted");
-                    }
+            }
+
+            controller->setSpeed(speed);
+            if (controller->setTarget(x, y, z)){
+                if (controller->awaitFinished()){
+                    result.result_code = robot_movement_interface::Result::SUCCESS;
+                    result.additional_information = "Move completed";
+                    GantryPosition final_pos = controller->getCurrentPosition();
+                    cb_update(final_pos, true);
                 } else {
-                    result.result_code = robot_movement_interface::Result::FAILURE_OUT_OF_REACH;
-                    result.additional_information = "Target position out of reach";
-                    ROS_WARN("Target out of reach! Limits: x[%.2f,%.2f] y[%.2f,%.2f] z[%.2f,%.2f]",
-                             controller->getLimits().min_x, controller->getLimits().max_x,
-                             controller->getLimits().min_y, controller->getLimits().max_y,
-                             controller->getLimits().min_z, controller->getLimits().max_z);
+                    result.result_code = robot_movement_interface::Result::FAILURE_STOP_TRIGGERED;
+                    result.additional_information = "Move aborted";
                 }
             } else {
-                result.result_code = robot_movement_interface::Result::FAILURE_EXECUTION;
-                result.additional_information = "Invalid pose: need at least 3 values (x, y, z)";
+                result.result_code = robot_movement_interface::Result::FAILURE_OUT_OF_REACH;
+                result.additional_information = "Target position out of reach";
             }
         } else {
-            // Unknown command type - just succeed for now
-            ROS_WARN("Unknown command type: '%s' - treating as no-op", cmd_type.c_str());
-            result.result_code = robot_movement_interface::Result::SUCCESS;
-            result.additional_information = "Command type not implemented for gantry";
+            result.result_code = robot_movement_interface::Result::FAILURE_EXECUTION;
+            result.additional_information = "Invalid pose: need at least 3 values (x,y,z)";
         }
-        
-        pub_command_result.publish(result);
-        ROS_INFO("Command %d completed with result code: %d", cmd.command_id, result.result_code);
+    } else {
+        result.result_code = robot_movement_interface::Result::SUCCESS;
+        result.additional_information = "Command type not implemented for gantry";
     }
+
+    pub_command_result.publish(result);
+    processing_command = false;
 }
 
 bool GantryDriver::cb_get_fk(robot_movement_interface::GetFK::Request &req, robot_movement_interface::GetFK::Response &res) {
