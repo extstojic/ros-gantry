@@ -75,11 +75,11 @@ GantryDriver::GantryDriver(GantryController* controller) {
     controller->register_update_callback(std::bind(&GantryDriver::cb_update, this, std::placeholders::_1, std::placeholders::_2));
     
     // Immediately publish initial position so marker can read it
-    GantryPosition init_pos = controller->getCurrentPosition();
+    GantryPosition current_pos = controller->getCurrentPosition();
     robot_movement_interface::EulerFrame init_tcp;
-    init_tcp.x = init_pos.x;
-    init_tcp.y = init_pos.y;
-    init_tcp.z = init_pos.z;
+    init_tcp.x = current_pos.x;
+    init_tcp.y = current_pos.y;
+    init_tcp.z = current_pos.z;
     init_tcp.alpha = 0.0;
     init_tcp.beta = 0.0;
     init_tcp.gamma = 0.0;
