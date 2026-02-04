@@ -214,11 +214,17 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
                     z /= 1000.0;
                 }
                 
-                // The UI sends the marker's absolute position (relative to marker init)
-                // NOT a delta to add to current position
-                // Just use the pose directly as the target
-                ROS_INFO("Target position from marker: x=%.4f, y=%.4f, z=%.4f (replace=%d)", 
-                         x, y, z, msg->replace_previous_commands);
+                // Check if this is a delta/relative movement (jog command)
+                // Jog buttons send deltas with replace=false, so add to current position
+                if (!msg->replace_previous_commands) {
+                    GantryPosition current = controller->getCurrentPosition();
+                    ROS_INFO("Relative movement (delta): pose=[%.4f, %.4f, %.4f] + current=[%.4f, %.4f, %.4f]", 
+                             x, y, z, current.x, current.y, current.z);
+                    x += current.x;
+                    y += current.y;
+                    z += current.z;
+                    ROS_INFO("Final target after delta: x=%.4f, y=%.4f, z=%.4f", x, y, z);
+                }
                 
                 // Handle velocity
                 double speed = controller->getLimits().max_speed * 0.5;  // Default 50%
