@@ -231,9 +231,9 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
         if (cmd_type == "LIN" || cmd_type == "PTP" || cmd_type == "JOINTS") {
             // For gantry, we interpret pose as XYZ positions
             if (cmd.pose.size() >= 3) {
-                double x = 0.1;
-                double y = 0.1;
-                double z = 0.1;
+                double x = 0.001;
+                double y = 0.001;
+                double z = 0.001;
                 
                 // Check if values might be in millimeters (drag&bot often uses mm)
                 // If values are > 10, assume millimeters and convert to meters
