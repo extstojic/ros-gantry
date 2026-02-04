@@ -231,9 +231,9 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
         if (cmd_type == "LIN" || cmd_type == "PTP" || cmd_type == "JOINTS") {
             // For gantry, we interpret pose as XYZ positions
             if (cmd.pose.size() >= 3) {
-                double x = 0.001;
-                double y = 0.001;
-                double z = 0.001;
+                double x = cmd.pose[0];
+                double y = cmd.pose[1];
+                double z = cmd.pose[2];
                 
                 // Check if values might be in millimeters (drag&bot often uses mm)
                 // If values are > 10, assume millimeters and convert to meters
@@ -244,17 +244,10 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
                     z /= 1000.0;
                 }
                 
-                // Check if this is a delta/relative movement (jog command)
-                // Jog buttons send deltas with replace=false, so add to current position
-                if (!msg->replace_previous_commands) {
-                    GantryPosition current = controller->getCurrentPosition();
-                    ROS_INFO("Relative movement (delta): pose=[%.4f, %.4f, %.4f] + current=[%.4f, %.4f, %.4f]", 
-                             x, y, z, current.x, current.y, current.z);
-                    x += current.x;
-                    y += current.y;
-                    z += current.z;
-                    ROS_INFO("Final target after delta: x=%.4f, y=%.4f, z=%.4f", x, y, z);
-                }
+                // Note: The UI (dnb_remote_robot_control) already computes absolute target positions
+                // by adding marker_position + (direction * step_size). So we receive absolute targets,
+                // not deltas. The replace_previous_commands flag just controls command queue behavior.
+                ROS_INFO("Target position (absolute from UI): x=%.4f, y=%.4f, z=%.4f", x, y, z);
                 
                 // Handle velocity
                 double speed = controller->getLimits().max_speed * 0.5;  // Default 50%
