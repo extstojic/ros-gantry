@@ -54,9 +54,6 @@ GantryDriver::GantryDriver(GantryController* controller) {
     
     // Also publish to global topic for drag&bot marker to use directly
     pub_dnb_tool_frame_global = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame", 100, true);
-    
-    // Create timer to publish tool frame continuously (every 100ms)
-    pub_tool_frame_timer = nh.createTimer(ros::Duration(0.1), &GantryDriver::cb_publish_tool_frame, this);
 
     // Publish component status
     dnb_msgs::ComponentStatus status_msg;
@@ -120,6 +117,7 @@ void GantryDriver::cb_update(GantryPosition position, bool moved) {
     tcp_pose.beta = 0.0;
     tcp_pose.gamma = 0.0;
     pub_dnb_tool_frame.publish(tcp_pose);
+    pub_dnb_tool_frame_global.publish(tcp_pose);  // Also publish to global topic for marker
 
     stop_queue.callAvailable(ros::WallDuration());
 
@@ -327,19 +325,4 @@ bool GantryDriver::cb_get_marker_init(std_srvs::Trigger::Request &req, std_srvs:
     res.message = std::to_string(pos.x) + "," + std::to_string(pos.y) + "," + std::to_string(pos.z);
     
     return true;
-}
-
-void GantryDriver::cb_publish_tool_frame(const ros::TimerEvent& event) {
-    // Publish tool frame continuously for marker updates
-    GantryPosition pos = controller->getCurrentPosition();
-    robot_movement_interface::EulerFrame tcp_pose;
-    tcp_pose.x = pos.x;
-    tcp_pose.y = pos.y;
-    tcp_pose.z = pos.z;
-    tcp_pose.alpha = 0.0;
-    tcp_pose.beta = 0.0;
-    tcp_pose.gamma = 0.0;
-    
-    pub_dnb_tool_frame.publish(tcp_pose);
-    pub_dnb_tool_frame_global.publish(tcp_pose);  // Publish to global topic so marker tracks it
 }
