@@ -342,7 +342,7 @@
       <geometry>
         <cylinder radius="0.03" length="0.10"/>
       </geometry>
-      <origin xyz="0 0 0.2" rpy="0 0 0"/>
+      <origin xyz="0 0 0.15" rpy="0 0 0"/>
       <material name="red_tool"/>
     </visual>
     <!-- Tool tip (at the very bottom) -->
@@ -357,7 +357,7 @@
       <geometry>
         <cylinder radius="0.04" length="0.16"/>
       </geometry>
-      <origin xyz="0 0 -0.08" rpy="0 0 0"/>
+      <origin xyz="0 0 0.085" rpy="0 0 0"/>
     </collision>
   </link>
 
