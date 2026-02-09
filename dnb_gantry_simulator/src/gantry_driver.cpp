@@ -38,7 +38,8 @@ GantryDriver::GantryDriver(GantryController* controller) {
     sub_notify_reset_simulation = nh.subscribe("/notify_reset_simulation", 1, &GantryDriver::cb_reset, this);
     srv_move = private_nh.advertiseService("move", &GantryDriver::cb_move, this);
     srv_stop = stop_nh.advertiseService("stop", &GantryDriver::cb_stop, this);
-    srv_stop_robot_right_now = nh.advertiseService("stop_robot_right_now", &GantryDriver::cb_stop, this);    srv_get_marker_init = private_nh.advertiseService("get_marker_init", &GantryDriver::cb_get_marker_init, this);  // Marker initialization with current position
+    srv_stop_robot_right_now = nh.advertiseService("/stop_robot_right_now", &GantryDriver::cb_stop, this);
+    srv_get_marker_init = private_nh.advertiseService("get_marker_init", &GantryDriver::cb_get_marker_init, this);  // Marker initialization with current position
     pub_notify_changed_transforms = nh.advertise<std_msgs::Empty>("/notify_changed_system_transformations", 1);
     pub_joint_states = private_nh.advertise<sensor_msgs::JointState>("joint_states", 10);
     pub_joint_states_global = nh.advertise<sensor_msgs::JointState>("/joint_states", 10);  // Global for robot_state_publisher
