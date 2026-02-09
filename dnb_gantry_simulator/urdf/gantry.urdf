@@ -342,7 +342,7 @@
       <geometry>
         <cylinder radius="0.025" length="0.08"/>
       </geometry>
-      <origin xyz="0 0 -0.4" rpy="0 0 0"/>
+      <origin xyz="0 0 0.4" rpy="0 0 0"/>
       <material name="red_tool"/>
     </visual>
     <!-- Tool tip -->
