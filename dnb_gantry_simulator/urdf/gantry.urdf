@@ -364,7 +364,7 @@
   <joint name="effector_joint" type="fixed">
     <parent link="z_column"/>
     <child link="end_effector"/>
-    <origin xyz="0 0 -0.6" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.2" rpy="0 0 0"/>
   </joint>
 
   <!-- ============== TOOL FRAMES ============== -->
