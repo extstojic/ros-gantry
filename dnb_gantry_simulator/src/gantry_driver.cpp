@@ -20,8 +20,8 @@ GantryDriver::GantryDriver(GantryController* controller) {
     double max_x = private_nh.param("max_x", 0.4);
     double min_y = private_nh.param("min_y", -0.3);
     double max_y = private_nh.param("max_y", 0.3);
-    double min_z = private_nh.param("min_z", -0.5);
-    double max_z = private_nh.param("max_z", 0.5);
+    double min_z = private_nh.param("min_z", -0.4);
+    double max_z = private_nh.param("max_z", 0.4);
     double max_speed = private_nh.param("max_speed", 0.2);
 
     ROS_INFO("Gantry limits: X[%.2f, %.2f] Y[%.2f, %.2f] Z[%.2f, %.2f] MaxSpeed: %.2f",
@@ -280,19 +280,15 @@ void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
             }
 
             controller->setSpeed(speed);
-            if (controller->setTarget(x, y, z)){
-                if (controller->awaitFinished()){
-                    result.result_code = robot_movement_interface::Result::SUCCESS;
-                    result.additional_information = "Move completed";
-                    GantryPosition final_pos = controller->getCurrentPosition();
-                    cb_update(final_pos, true);
-                } else {
-                    result.result_code = robot_movement_interface::Result::FAILURE_STOP_TRIGGERED;
-                    result.additional_information = "Move aborted";
-                }
+            controller->setTarget(x, y, z);  // Now clamps to limits
+            if (controller->awaitFinished()){
+                result.result_code = robot_movement_interface::Result::SUCCESS;
+                result.additional_information = "Move completed";
+                GantryPosition final_pos = controller->getCurrentPosition();
+                cb_update(final_pos, true);
             } else {
-                result.result_code = robot_movement_interface::Result::FAILURE_OUT_OF_REACH;
-                result.additional_information = "Target position out of reach";
+                result.result_code = robot_movement_interface::Result::FAILURE_STOP_TRIGGERED;
+                result.additional_information = "Move aborted";
             }
         } else {
             result.result_code = robot_movement_interface::Result::FAILURE_EXECUTION;
