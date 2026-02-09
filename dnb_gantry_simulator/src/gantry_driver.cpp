@@ -4,6 +4,7 @@
 #include <robot_movement_interface/CommandList.h>
 #include <robot_movement_interface/Result.h>
 #include <robot_movement_interface/GetFK.h>
+#include <std_msgs/Float32.h>
 
 using namespace simulator;
 
@@ -56,6 +57,13 @@ GantryDriver::GantryDriver(GantryController* controller) {
     
     // CRITICAL: delta_interface_v3.py subscribes to this topic for current_pose used in jog calculations
     pub_dnb_tool_frame_robotbase = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame_robotbase", 100, true);
+
+    // CRITICAL: delta_interface multiplies jog delta by this value - must be non-zero!
+    pub_current_speed_scale = nh.advertise<std_msgs::Float32>("/current_speed_scale", 10, true);
+    std_msgs::Float32 speed_scale_msg;
+    speed_scale_msg.data = 1.0;  // 100% speed scale
+    pub_current_speed_scale.publish(speed_scale_msg);
+    ROS_INFO("Published /current_speed_scale = 1.0");
 
     // Publish component status
     dnb_msgs::ComponentStatus status_msg;
@@ -143,6 +151,11 @@ void GantryDriver::cb_update(GantryPosition position, bool moved) {
     tf.transform.translation.y = position.y;
     tf.transform.translation.z = position.z;
     tf.transform.rotation.w = 1.0;
+    broadcaster.sendTransform(tf);
+
+    // Also broadcast manufacturer_base → robot_state_tcp for drag&bot compatibility
+    tf.header.frame_id = "manufacturer_base";
+    tf.child_frame_id = "robot_state_tcp";
     broadcaster.sendTransform(tf);
 
     // Publish TCP pose to override dnb_tool_manager's cached value

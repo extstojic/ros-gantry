@@ -6,6 +6,7 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Float32.h>
 #include <dnb_msgs/ComponentStatus.h>
 #include <std_msgs/Empty.h>
 #include <std_srvs/Trigger.h>
@@ -62,6 +63,7 @@ private:
     ros::Publisher pub_dnb_tool_frame;
     ros::Publisher pub_dnb_tool_frame_global;
     ros::Publisher pub_dnb_tool_frame_robotbase;  // For delta_interface jog commands
+    ros::Publisher pub_current_speed_scale;  // Speed multiplier for jog commands
     ros::Timer position_update_timer;
 
     tf2_ros::TransformBroadcaster broadcaster;
