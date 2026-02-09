@@ -1,83 +1,243 @@
 <?xml version="1.0"?>
 <robot name="gantry_robot">
+  <!-- ============================================== -->
+  <!-- Industrial Gantry Robot - Improved Visuals    -->
+  <!-- 3-axis Cartesian robot with realistic frame   -->
+  <!-- ============================================== -->
+
   <!-- World link for Gazebo compatibility -->
   <link name="world"/>
 
-  <!-- Base link for drag&bot integration -->
+  <!-- ============== MATERIALS ============== -->
+  <material name="aluminum">
+    <color rgba="0.8 0.82 0.85 1.0"/>
+  </material>
+  <material name="dark_steel">
+    <color rgba="0.25 0.25 0.28 1.0"/>
+  </material>
+  <material name="orange_accent">
+    <color rgba="1.0 0.45 0.0 1.0"/>
+  </material>
+  <material name="blue_accent">
+    <color rgba="0.1 0.4 0.8 1.0"/>
+  </material>
+  <material name="black">
+    <color rgba="0.1 0.1 0.1 1.0"/>
+  </material>
+  <material name="yellow_safety">
+    <color rgba="1.0 0.85 0.0 1.0"/>
+  </material>
+  <material name="red_tool">
+    <color rgba="0.85 0.15 0.15 1.0"/>
+  </material>
+
+  <!-- ============== BASE FRAME ============== -->
   <link name="robot_base">
+    <!-- Main base plate -->
     <visual>
       <geometry>
-        <box size="1.0 0.8 0.05"/>
+        <box size="1.2 1.0 0.03"/>
       </geometry>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <material name="grey">
-        <color rgba="0.5 0.5 0.5 1.0"/>
-      </material>
+      <material name="dark_steel"/>
     </visual>
     <collision>
       <geometry>
-        <box size="1.0 0.8 0.05"/>
+        <box size="1.2 1.0 0.03"/>
       </geometry>
       <origin xyz="0 0 0" rpy="0 0 0"/>
     </collision>
   </link>
 
-  <!-- Fixed joint from world to robot_base (for Gazebo) -->
   <joint name="world_to_robot_base" type="fixed">
     <parent link="world"/>
     <child link="robot_base"/>
     <origin xyz="0 0 0.5" rpy="0 0 0"/>
   </joint>
 
+  <!-- ============== SUPPORT COLUMNS ============== -->
+  <!-- Front-left column -->
+  <link name="column_fl">
+    <visual>
+      <geometry>
+        <box size="0.08 0.08 0.7"/>
+      </geometry>
+      <origin xyz="0 0 0.35" rpy="0 0 0"/>
+      <material name="aluminum"/>
+    </visual>
+  </link>
+  <joint name="base_to_column_fl" type="fixed">
+    <parent link="robot_base"/>
+    <child link="column_fl"/>
+    <origin xyz="-0.5 -0.4 0.015" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Front-right column -->
+  <link name="column_fr">
+    <visual>
+      <geometry>
+        <box size="0.08 0.08 0.7"/>
+      </geometry>
+      <origin xyz="0 0 0.35" rpy="0 0 0"/>
+      <material name="aluminum"/>
+    </visual>
+  </link>
+  <joint name="base_to_column_fr" type="fixed">
+    <parent link="robot_base"/>
+    <child link="column_fr"/>
+    <origin xyz="-0.5 0.4 0.015" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Back-left column -->
+  <link name="column_bl">
+    <visual>
+      <geometry>
+        <box size="0.08 0.08 0.7"/>
+      </geometry>
+      <origin xyz="0 0 0.35" rpy="0 0 0"/>
+      <material name="aluminum"/>
+    </visual>
+  </link>
+  <joint name="base_to_column_bl" type="fixed">
+    <parent link="robot_base"/>
+    <child link="column_bl"/>
+    <origin xyz="0.5 -0.4 0.015" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Back-right column -->
+  <link name="column_br">
+    <visual>
+      <geometry>
+        <box size="0.08 0.08 0.7"/>
+      </geometry>
+      <origin xyz="0 0 0.35" rpy="0 0 0"/>
+      <material name="aluminum"/>
+    </visual>
+  </link>
+  <joint name="base_to_column_br" type="fixed">
+    <parent link="robot_base"/>
+    <child link="column_br"/>
+    <origin xyz="0.5 0.4 0.015" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ============== TOP FRAME (X-AXIS RAILS) ============== -->
+  <!-- Left X rail (connects front-left to back-left columns) -->
   <link name="x_rail_left">
     <visual>
       <geometry>
-        <box size="1.0 0.05 0.05"/>
+        <box size="1.1 0.06 0.1"/>
       </geometry>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <material name="dark_grey">
-        <color rgba="0.3 0.3 0.3 1.0"/>
-      </material>
+      <material name="aluminum"/>
+    </visual>
+    <!-- Linear guide rail visual -->
+    <visual>
+      <geometry>
+        <box size="1.05 0.02 0.02"/>
+      </geometry>
+      <origin xyz="0 0.015 -0.03" rpy="0 0 0"/>
+      <material name="dark_steel"/>
     </visual>
   </link>
-
   <joint name="base_to_x_rail_left" type="fixed">
     <parent link="robot_base"/>
     <child link="x_rail_left"/>
-    <origin xyz="0 -0.35 0.05" rpy="0 0 0"/>
+    <origin xyz="0 -0.4 0.75" rpy="0 0 0"/>
   </joint>
 
+  <!-- Right X rail (connects front-right to back-right columns) -->
   <link name="x_rail_right">
     <visual>
       <geometry>
-        <box size="1.0 0.05 0.05"/>
+        <box size="1.1 0.06 0.1"/>
       </geometry>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <material name="dark_grey">
-        <color rgba="0.3 0.3 0.3 1.0"/>
-      </material>
+      <material name="aluminum"/>
+    </visual>
+    <!-- Linear guide rail visual -->
+    <visual>
+      <geometry>
+        <box size="1.05 0.02 0.02"/>
+      </geometry>
+      <origin xyz="0 -0.015 -0.03" rpy="0 0 0"/>
+      <material name="dark_steel"/>
     </visual>
   </link>
-
   <joint name="base_to_x_rail_right" type="fixed">
     <parent link="robot_base"/>
     <child link="x_rail_right"/>
-    <origin xyz="0 0.35 0.05" rpy="0 0 0"/>
+    <origin xyz="0 0.4 0.75" rpy="0 0 0"/>
   </joint>
 
-  <link name="x_carriage">
+  <!-- Front cross beam -->
+  <link name="cross_beam_front">
     <visual>
       <geometry>
-        <box size="0.1 0.8 0.08"/>
+        <box size="0.06 0.72 0.06"/>
       </geometry>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <material name="orange">
-        <color rgba="1.0 0.5 0.0 1.0"/>
-      </material>
+      <material name="aluminum"/>
+    </visual>
+  </link>
+  <joint name="base_to_cross_front" type="fixed">
+    <parent link="robot_base"/>
+    <child link="cross_beam_front"/>
+    <origin xyz="-0.5 0 0.72" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Back cross beam -->
+  <link name="cross_beam_back">
+    <visual>
+      <geometry>
+        <box size="0.06 0.72 0.06"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <material name="aluminum"/>
+    </visual>
+  </link>
+  <joint name="base_to_cross_back" type="fixed">
+    <parent link="robot_base"/>
+    <child link="cross_beam_back"/>
+    <origin xyz="0.5 0 0.72" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ============== X-AXIS CARRIAGE (Y-BEAM) ============== -->
+  <link name="x_carriage">
+    <!-- Main Y-axis beam -->
+    <visual>
+      <geometry>
+        <box size="0.1 0.9 0.12"/>
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <material name="orange_accent"/>
+    </visual>
+    <!-- Left bearing block -->
+    <visual>
+      <geometry>
+        <box size="0.08 0.06 0.06"/>
+      </geometry>
+      <origin xyz="0 -0.4 -0.09" rpy="0 0 0"/>
+      <material name="dark_steel"/>
+    </visual>
+    <!-- Right bearing block -->
+    <visual>
+      <geometry>
+        <box size="0.08 0.06 0.06"/>
+      </geometry>
+      <origin xyz="0 0.4 -0.09" rpy="0 0 0"/>
+      <material name="dark_steel"/>
+    </visual>
+    <!-- Y-axis linear rail -->
+    <visual>
+      <geometry>
+        <box size="0.02 0.85 0.02"/>
+      </geometry>
+      <origin xyz="0.03 0 -0.04" rpy="0 0 0"/>
+      <material name="dark_steel"/>
     </visual>
     <collision>
       <geometry>
-        <box size="0.1 0.8 0.08"/>
+        <box size="0.1 0.9 0.12"/>
       </geometry>
       <origin xyz="0 0 0" rpy="0 0 0"/>
     </collision>
@@ -86,24 +246,32 @@
   <joint name="x_joint" type="prismatic">
     <parent link="robot_base"/>
     <child link="x_carriage"/>
-    <origin xyz="0 0 0.1" rpy="0 0 0"/>
+    <origin xyz="0 0 0.69" rpy="0 0 0"/>
     <axis xyz="1 0 0"/>
     <limit lower="-0.4" upper="0.4" effort="100" velocity="0.5"/>
   </joint>
 
+  <!-- ============== Y-AXIS CARRIAGE ============== -->
   <link name="y_carriage">
+    <!-- Main carriage body -->
     <visual>
       <geometry>
-        <box size="0.08 0.1 0.1"/>
+        <box size="0.14 0.12 0.1"/>
       </geometry>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <material name="blue">
-        <color rgba="0.0 0.4 0.8 1.0"/>
-      </material>
+      <material name="blue_accent"/>
+    </visual>
+    <!-- Bearing block -->
+    <visual>
+      <geometry>
+        <box size="0.06 0.08 0.04"/>
+      </geometry>
+      <origin xyz="0.03 0 0.07" rpy="0 0 0"/>
+      <material name="dark_steel"/>
     </visual>
     <collision>
       <geometry>
-        <box size="0.08 0.1 0.1"/>
+        <box size="0.14 0.12 0.1"/>
       </geometry>
       <origin xyz="0 0 0" rpy="0 0 0"/>
     </collision>
@@ -112,67 +280,115 @@
   <joint name="y_joint" type="prismatic">
     <parent link="x_carriage"/>
     <child link="y_carriage"/>
-    <origin xyz="0 0 0.09" rpy="0 0 0"/>
+    <origin xyz="0.05 0 -0.11" rpy="0 0 0"/>
     <axis xyz="0 1 0"/>
     <limit lower="-0.3" upper="0.3" effort="100" velocity="0.5"/>
   </joint>
 
+  <!-- ============== Z-AXIS COLUMN ============== -->
   <link name="z_column">
+    <!-- Main Z column (moves vertically) -->
     <visual>
       <geometry>
-        <box size="0.06 0.06 0.6"/>
+        <box size="0.05 0.05 0.65"/>
       </geometry>
-      <origin xyz="0 0 -0.25" rpy="0 0 0"/>
-      <material name="green">
-        <color rgba="0.0 0.6 0.3 1.0"/>
-      </material>
+      <origin xyz="0 0 -0.275" rpy="0 0 0"/>
+      <material name="aluminum"/>
+    </visual>
+    <!-- Z guide rail -->
+    <visual>
+      <geometry>
+        <box size="0.015 0.06 0.6"/>
+      </geometry>
+      <origin xyz="0.03 0 -0.25" rpy="0 0 0"/>
+      <material name="dark_steel"/>
+    </visual>
+    <!-- Cable chain mount -->
+    <visual>
+      <geometry>
+        <box size="0.03 0.08 0.08"/>
+      </geometry>
+      <origin xyz="-0.04 0 0" rpy="0 0 0"/>
+      <material name="black"/>
     </visual>
     <collision>
       <geometry>
-        <box size="0.06 0.06 0.6"/>
+        <box size="0.05 0.05 0.65"/>
       </geometry>
-      <origin xyz="0 0 -0.25" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.275" rpy="0 0 0"/>
     </collision>
   </link>
 
   <joint name="z_joint" type="prismatic">
     <parent link="y_carriage"/>
     <child link="z_column"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.05" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
     <limit lower="-0.5" upper="0.1" effort="100" velocity="0.5"/>
   </joint>
 
+  <!-- ============== END EFFECTOR ============== -->
   <link name="end_effector">
+    <!-- Tool mounting plate -->
     <visual>
       <geometry>
-        <cylinder radius="0.03" length="0.05"/>
+        <cylinder radius="0.04" length="0.02"/>
       </geometry>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
-      <material name="red">
-        <color rgba="0.8 0.0 0.0 1.0"/>
-      </material>
+      <origin xyz="0 0 0.01" rpy="0 0 0"/>
+      <material name="dark_steel"/>
+    </visual>
+    <!-- Tool body -->
+    <visual>
+      <geometry>
+        <cylinder radius="0.025" length="0.08"/>
+      </geometry>
+      <origin xyz="0 0 -0.04" rpy="0 0 0"/>
+      <material name="red_tool"/>
+    </visual>
+    <!-- Tool tip -->
+    <visual>
+      <geometry>
+        <cylinder radius="0.015" length="0.03"/>
+      </geometry>
+      <origin xyz="0 0 -0.095" rpy="0 0 0"/>
+      <material name="dark_steel"/>
     </visual>
     <collision>
       <geometry>
-        <cylinder radius="0.03" length="0.05"/>
+        <cylinder radius="0.04" length="0.12"/>
       </geometry>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.04" rpy="0 0 0"/>
     </collision>
   </link>
 
   <joint name="effector_joint" type="fixed">
     <parent link="z_column"/>
     <child link="end_effector"/>
-    <origin xyz="0 0 -0.55" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.6" rpy="0 0 0"/>
   </joint>
 
+  <!-- ============== TOOL FRAMES ============== -->
   <link name="tool0"/>
-
   <joint name="effector_to_tool0" type="fixed">
     <parent link="end_effector"/>
     <child link="tool0"/>
-    <origin xyz="0 0 -0.025" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.11" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Manufacturer base frame for drag&bot compatibility -->
+  <link name="manufacturer_base"/>
+  <joint name="robot_base_to_manufacturer_base" type="fixed">
+    <parent link="robot_base"/>
+    <child link="manufacturer_base"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Robot state TCP for drag&bot compatibility -->
+  <link name="robot_state_tcp"/>
+  <joint name="tool0_to_robot_state_tcp" type="fixed">
+    <parent link="tool0"/>
+    <child link="robot_state_tcp"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
   </joint>
 
 </robot>
