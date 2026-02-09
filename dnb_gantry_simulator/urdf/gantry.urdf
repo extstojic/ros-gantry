@@ -290,9 +290,9 @@
     <!-- Main Z column (moves vertically) -->
     <visual>
       <geometry>
-        <box size="0.05 0.05 0.25"/>
+        <box size="0.05 0.05 0.40"/>
       </geometry>
-      <origin xyz="0 0 -0.275" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.175" rpy="0 0 0"/>
       <material name="aluminum"/>
     </visual>
     <!-- Z guide rail -->
@@ -364,7 +364,7 @@
   <joint name="effector_joint" type="fixed">
     <parent link="z_column"/>
     <child link="end_effector"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 0.15" rpy="0 0 0"/>
   </joint>
 
   <!-- ============== TOOL FRAMES ============== -->
