@@ -97,8 +97,8 @@ GantryDriver::GantryDriver(GantryController* controller) {
     pub_dnb_tool_frame_global.publish(init_tcp);
     pub_dnb_tool_frame_robotbase.publish(init_tcp);  // For delta_interface jog commands
     
-    // Start a timer to publish position continuously so marker always reads fresh values
-    position_update_timer = private_nh.createTimer(ros::Duration(0.1), 
+    // Start a timer to publish position continuously at high rate (50Hz) so marker always reads fresh values
+    position_update_timer = private_nh.createTimer(ros::Duration(0.02), 
         &GantryDriver::cb_position_update_timer, this);
 
     // Start a timer to process queued commands (behaviour similar to Nachi driver)
