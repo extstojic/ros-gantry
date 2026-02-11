@@ -109,7 +109,7 @@ GantryDriver::~GantryDriver() {
 }
 
 void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
-    // Publish current position frequently so marker always reads fresh values
+    // Publish current position at 100Hz - faster than dnb_tool_manager to dominate the topic
     GantryPosition current_pos = controller->getCurrentPosition();
     robot_movement_interface::EulerFrame tcp_pose;
     tcp_pose.x = current_pos.x;
@@ -120,14 +120,14 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     tcp_pose.gamma = 0.0;
     pub_dnb_tool_frame.publish(tcp_pose);
     pub_dnb_tool_frame_global.publish(tcp_pose);
-    // Don't publish to pub_dnb_tool_frame_robotbase - let dnb_tool_manager handle it from TF
+    pub_dnb_tool_frame_robotbase.publish(tcp_pose);  // Publish faster to win race with dnb_tool_manager
     
     // Republish speed scale to ensure it stays at 1.0
     std_msgs::Float32 speed_scale_msg;
     speed_scale_msg.data = 1.0;
     pub_current_speed_scale.publish(speed_scale_msg);
     
-    // Also broadcast TF frames at high rate for dnb_tool_manager
+    // Also broadcast TF frames at high rate
     ros::Time now = ros::Time::now();
     geometry_msgs::TransformStamped tf;
     tf.header.stamp = now;
@@ -136,7 +136,7 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     tf.transform.translation.z = current_pos.z;
     tf.transform.rotation.w = 1.0;
     
-    // Publish robot_base -> dnb_tool_frame
+    // Publish robot_base -> dnb_tool_frame (for dnb_tool_manager)
     tf.header.frame_id = "robot_base";
     tf.child_frame_id = "dnb_tool_frame";
     broadcaster.sendTransform(tf);
@@ -185,7 +185,7 @@ void GantryDriver::cb_update(GantryPosition position, bool moved) {
     tf.child_frame_id = "robot_state_tcp";
     broadcaster.sendTransform(tf);
 
-    // Publish TCP pose topics (but NOT to /dnb_tool_frame_robotbase - let dnb_tool_manager handle that)
+    // Publish TCP pose topics
     robot_movement_interface::EulerFrame tcp_pose;
     tcp_pose.x = position.x;
     tcp_pose.y = position.y;
@@ -194,8 +194,8 @@ void GantryDriver::cb_update(GantryPosition position, bool moved) {
     tcp_pose.beta = 0.0;
     tcp_pose.gamma = 0.0;
     pub_dnb_tool_frame.publish(tcp_pose);
-    pub_dnb_tool_frame_global.publish(tcp_pose);  // Also publish to global topic for marker
-    // Don't publish to pub_dnb_tool_frame_robotbase - let dnb_tool_manager handle it from TF
+    pub_dnb_tool_frame_global.publish(tcp_pose);
+    pub_dnb_tool_frame_robotbase.publish(tcp_pose);  // Publish at 100Hz to dominate dnb_tool_manager's updates
 
     stop_queue.callAvailable(ros::WallDuration());
 
