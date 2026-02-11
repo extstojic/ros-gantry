@@ -121,6 +121,11 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     pub_dnb_tool_frame.publish(tcp_pose);
     pub_dnb_tool_frame_global.publish(tcp_pose);
     pub_dnb_tool_frame_robotbase.publish(tcp_pose);  // For delta_interface jog commands
+    
+    // Republish speed scale to ensure it stays at 1.0 (in case something else tries to override)
+    std_msgs::Float32 speed_scale_msg;
+    speed_scale_msg.data = 1.0;
+    pub_current_speed_scale.publish(speed_scale_msg);
 }
 
 void GantryDriver::publishJointStates(GantryPosition position) {
