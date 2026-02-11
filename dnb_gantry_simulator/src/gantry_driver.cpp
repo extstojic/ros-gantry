@@ -263,10 +263,6 @@ void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
                 x /= 1000.0; y /= 1000.0; z /= 1000.0;
             }
 
-            // If this was intended as relative (jog), remote-control uses replace=false to indicate
-            // However we cannot see the original CommandList replace flag here; the remote-control
-            // typically encodes the absolute target when publishing — we assume cmd.pose contains proper target
-
             // Determine speed
             double speed = controller->getLimits().max_speed * 0.5; // default
             if (cmd.velocity.size() > 0 && cmd.velocity[0] > 0) {
@@ -281,14 +277,30 @@ void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
 
             controller->setSpeed(speed);
             controller->setTarget(x, y, z);  // Now clamps to limits
-            if (controller->awaitFinished()){
-                result.result_code = robot_movement_interface::Result::SUCCESS;
-                result.additional_information = "Move completed";
-                GantryPosition final_pos = controller->getCurrentPosition();
-                cb_update(final_pos, true);
-            } else {
-                result.result_code = robot_movement_interface::Result::FAILURE_STOP_TRIGGERED;
-                result.additional_information = "Move aborted";
+            
+            // Don't block forever - timeout after 30 seconds
+            ros::Time start_time = ros::Time::now();
+            bool finished = false;
+            while (ros::ok() && !finished) {
+                if (controller->awaitFinished()) {
+                    finished = true;
+                    result.result_code = robot_movement_interface::Result::SUCCESS;
+                    result.additional_information = "Move completed";
+                    GantryPosition final_pos = controller->getCurrentPosition();
+                    cb_update(final_pos, true);
+                    break;
+                }
+                
+                // Timeout check - if waiting longer than 30s, something is wrong
+                if ((ros::Time::now() - start_time).toSec() > 30.0) {
+                    ROS_ERROR("Command execution timeout - stopping");
+                    controller->stop();
+                    result.result_code = robot_movement_interface::Result::FAILURE_STOP_TRIGGERED;
+                    result.additional_information = "Command timeout (>30s)";
+                    break;
+                }
+                
+                ros::Duration(0.01).sleep();  // Check every 10ms
             }
         } else {
             result.result_code = robot_movement_interface::Result::FAILURE_EXECUTION;
@@ -300,7 +312,7 @@ void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
     }
 
     pub_command_result.publish(result);
-    processing_command = false;
+    processing_command = false;  // ALWAYS reset this flag
 }
 
 bool GantryDriver::cb_get_fk(robot_movement_interface::GetFK::Request &req, robot_movement_interface::GetFK::Response &res) {
