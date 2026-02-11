@@ -3,10 +3,17 @@ name: 'Gantry Robot'
 robot_type: 'gantry'
 dof: 3
 
-update_rate: 5.0
+update_rate: 50.0
 
-# Tool frame topic for interactive marker initialization
-tool_frame_topic: '/dnb_tool_frame'
+# Tool frame topic - this tells dnb_tool_manager where to READ position from
+# Our driver publishes to /dnb_gantry_simulator/tool_frame
+tool_frame_topic: '/dnb_gantry_simulator/tool_frame'
+
+# Tell tool_manager to subscribe instead of compute/publish
+tool_frame_source: 'topic'
+
+# Tool frame robotbase - used by delta_interface for jog calculations
+tool_frame_robotbase_topic: '/dnb_gantry_simulator/tool_frame'
 
 # Custom initialization service that returns current robot position
 marker_init_service: '/dnb_gantry_simulator_node/get_marker_init'
