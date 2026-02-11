@@ -120,12 +120,26 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     tcp_pose.gamma = 0.0;
     pub_dnb_tool_frame.publish(tcp_pose);
     pub_dnb_tool_frame_global.publish(tcp_pose);
-    pub_dnb_tool_frame_robotbase.publish(tcp_pose);  // For delta_interface jog commands
+    // Don't publish to pub_dnb_tool_frame_robotbase - let dnb_tool_manager handle it from TF
     
-    // Republish speed scale to ensure it stays at 1.0 (in case something else tries to override)
+    // Republish speed scale to ensure it stays at 1.0
     std_msgs::Float32 speed_scale_msg;
     speed_scale_msg.data = 1.0;
     pub_current_speed_scale.publish(speed_scale_msg);
+    
+    // Also broadcast TF frames at high rate for dnb_tool_manager
+    ros::Time now = ros::Time::now();
+    geometry_msgs::TransformStamped tf;
+    tf.header.stamp = now;
+    tf.transform.translation.x = current_pos.x;
+    tf.transform.translation.y = current_pos.y;
+    tf.transform.translation.z = current_pos.z;
+    tf.transform.rotation.w = 1.0;
+    
+    // Publish robot_base -> dnb_tool_frame
+    tf.header.frame_id = "robot_base";
+    tf.child_frame_id = "dnb_tool_frame";
+    broadcaster.sendTransform(tf);
 }
 
 void GantryDriver::publishJointStates(GantryPosition position) {
@@ -148,22 +162,30 @@ void GantryDriver::publishJointStates(GantryPosition position) {
 void GantryDriver::cb_update(GantryPosition position, bool moved) {
     publishJointStates(position);
 
+    ros::Time now = ros::Time::now();
+    
     geometry_msgs::TransformStamped tf;
+    tf.header.stamp = now;
+    tf.transform.rotation.w = 1.0;
+    
+    // Publish robot_base -> end_effector
     tf.header.frame_id = "robot_base";
-    tf.header.stamp = ros::Time::now();
     tf.child_frame_id = "end_effector";
     tf.transform.translation.x = position.x;
     tf.transform.translation.y = position.y;
     tf.transform.translation.z = position.z;
-    tf.transform.rotation.w = 1.0;
     broadcaster.sendTransform(tf);
 
-    // Also broadcast manufacturer_base → robot_state_tcp for drag&bot compatibility
+    // Publish robot_base -> dnb_tool_frame (CRITICAL: dnb_tool_manager looks for this frame)
+    tf.child_frame_id = "dnb_tool_frame";
+    broadcaster.sendTransform(tf);
+
+    // Publish manufacturer_base -> robot_state_tcp for drag&bot compatibility
     tf.header.frame_id = "manufacturer_base";
     tf.child_frame_id = "robot_state_tcp";
     broadcaster.sendTransform(tf);
 
-    // Publish TCP pose to override dnb_tool_manager's cached value
+    // Publish TCP pose topics (but NOT to /dnb_tool_frame_robotbase - let dnb_tool_manager handle that)
     robot_movement_interface::EulerFrame tcp_pose;
     tcp_pose.x = position.x;
     tcp_pose.y = position.y;
@@ -173,7 +195,7 @@ void GantryDriver::cb_update(GantryPosition position, bool moved) {
     tcp_pose.gamma = 0.0;
     pub_dnb_tool_frame.publish(tcp_pose);
     pub_dnb_tool_frame_global.publish(tcp_pose);  // Also publish to global topic for marker
-    pub_dnb_tool_frame_robotbase.publish(tcp_pose);  // For delta_interface jog commands
+    // Don't publish to pub_dnb_tool_frame_robotbase - let dnb_tool_manager handle it from TF
 
     stop_queue.callAvailable(ros::WallDuration());
 
