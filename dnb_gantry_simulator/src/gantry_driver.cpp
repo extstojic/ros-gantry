@@ -305,16 +305,18 @@ void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
             controller->setSpeed(speed);
             controller->setTarget(x, y, z);  // Now clamps to limits
             
-            // Don't block forever - timeout after 30 seconds
+            // Non-blocking check with timeout - allows callbacks to process
             ros::Time start_time = ros::Time::now();
             bool finished = false;
+            ros::Rate check_rate(50);  // 50Hz check rate
+            
             while (ros::ok() && !finished) {
-                if (controller->awaitFinished()) {
-                    finished = true;
+                if (controller->isFinished()) {
                     result.result_code = robot_movement_interface::Result::SUCCESS;
                     result.additional_information = "Move completed";
                     GantryPosition final_pos = controller->getCurrentPosition();
                     cb_update(final_pos, true);
+                    finished = true;
                     break;
                 }
                 
@@ -327,7 +329,8 @@ void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
                     break;
                 }
                 
-                ros::Duration(0.01).sleep();  // Check every 10ms
+                ros::spinOnce();  // Process callbacks while waiting
+                check_rate.sleep();
             }
         } else {
             result.result_code = robot_movement_interface::Result::FAILURE_EXECUTION;

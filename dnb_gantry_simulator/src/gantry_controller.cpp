@@ -94,19 +94,22 @@ bool GantryController::setSpeed(double spd) {
 bool GantryController::awaitFinished() {
     ros::Rate rate(50);
     while (ros::ok() && !abort) {
-        mutex_position.lock();
-        mutex_target.lock();
-        double dx = target_pos.x - current_pos.x;
-        double dy = target_pos.y - current_pos.y;
-        double dz = target_pos.z - current_pos.z;
-        double dist = std::sqrt(dx*dx + dy*dy + dz*dz);
-        mutex_target.unlock();
-        mutex_position.unlock();
-
-        if (dist < ZERO_BORDER) return true;
+        if (isFinished()) return true;
         rate.sleep();
     }
     return false;
+}
+
+bool GantryController::isFinished() {
+    mutex_position.lock();
+    mutex_target.lock();
+    double dx = target_pos.x - current_pos.x;
+    double dy = target_pos.y - current_pos.y;
+    double dz = target_pos.z - current_pos.z;
+    double dist = std::sqrt(dx*dx + dy*dy + dz*dz);
+    mutex_target.unlock();
+    mutex_position.unlock();
+    return (dist < ZERO_BORDER);
 }
 
 void GantryController::stop() {

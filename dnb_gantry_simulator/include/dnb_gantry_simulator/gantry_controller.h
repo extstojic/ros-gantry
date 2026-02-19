@@ -32,6 +32,7 @@ public:
     bool setTarget(double x, double y, double z);
     bool setSpeed(double speed);
     bool awaitFinished();
+    bool isFinished();  // Non-blocking check
     void stop();
     void reset();
 
