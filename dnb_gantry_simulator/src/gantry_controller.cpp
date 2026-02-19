@@ -25,26 +25,28 @@ void GantryController::tick() {
     mutex_position.lock();
     mutex_speed.lock();
 
-    double max_step = speed / simulation_rate;
     double dx = target_pos.x - current_pos.x;
     double dy = target_pos.y - current_pos.y;
     double dz = target_pos.z - current_pos.z;
     double dist = std::sqrt(dx*dx + dy*dy + dz*dz);
 
-    mutex_speed.unlock();
-
     bool moved = false;
     if (dist > ZERO_BORDER) {
+        double max_step = speed / simulation_rate;
         if (dist > max_step) {
             current_pos.x += (dx / dist) * max_step;
             current_pos.y += (dy / dist) * max_step;
             current_pos.z += (dz / dist) * max_step;
+            moved = true;
         } else {
+            // Close enough - snap to target and stop moving
             current_pos = target_pos;
+            target_pos = current_pos;  // Ensure target matches to prevent further movement
+            moved = true;
         }
-        moved = true;
     }
 
+    mutex_speed.unlock();
     mutex_position.unlock();
     mutex_target.unlock();
 
