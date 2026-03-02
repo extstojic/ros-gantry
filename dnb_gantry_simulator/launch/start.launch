@@ -44,6 +44,9 @@
 	<!-- robot_base to base_link static transform publisher (like nachi driver) -->
 	<node args="0 0 0 0 0 0 /robot_base /base_link 100" name="stfp_robot_base_to_base_link" pkg="tf" type="static_transform_publisher"/>
 
+	<!-- Set kinematic model (required by dnb packages) -->
+	<param name="simulation_params/kinematic_model" value="Gantry 3-Axis"/>
+
 	<!-- Start remote robot control node (provides jog services etc) -->
 	<include file="$(find dnb_remote_robot_control)/launch/start_v3.launch">
 		<arg name="package" value="dnb_gantry_simulator"/>
