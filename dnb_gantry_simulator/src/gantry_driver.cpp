@@ -127,7 +127,18 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     speed_scale_msg.data = 1.0;
     pub_current_speed_scale.publish(speed_scale_msg);
     
-    // NOTE: Do NOT publish TFs here - robot_state_publisher handles TFs from joint_states
+    // Publish tool0 -> dnb_tool_frame TF (identity, since gantry has no tool offset)
+    // This replaces what dnb_tool_manager would normally publish
+    ros::Time now = ros::Time::now();
+    geometry_msgs::TransformStamped tf;
+    tf.header.stamp = now;
+    tf.header.frame_id = "tool0";
+    tf.child_frame_id = "dnb_tool_frame";
+    tf.transform.translation.x = 0.0;
+    tf.transform.translation.y = 0.0;
+    tf.transform.translation.z = 0.0;
+    tf.transform.rotation.w = 1.0;
+    broadcaster.sendTransform(tf);
 }
 
 void GantryDriver::publishJointStates(GantryPosition position) {
