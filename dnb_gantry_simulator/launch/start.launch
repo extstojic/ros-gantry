@@ -69,8 +69,9 @@
 	</node>
 	-->
 
-	<!-- Start dnb_tool_manager explicitly if not already started by start_v3.launch -->
+	<!-- DISABLED: dnb_tool_manager (testing position switching bug)
 	<node name="dnb_tool_manager" pkg="dnb_tool_manager" type="dnb_tool_manager_node" output="screen" respawn="true"/>
+	-->
 
 	<!-- Notify robot start -->
 	<include file="$(find robot_movement_interface)/launch/notify_robot_start.launch"/>
