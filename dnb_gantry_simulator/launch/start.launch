@@ -47,11 +47,27 @@
 	<!-- Set kinematic model (required by dnb packages) -->
 	<param name="simulation_params/kinematic_model" value="Gantry 3-Axis"/>
 
-	<!-- Start remote robot control node (provides jog services etc) -->
-	<include file="$(find dnb_remote_robot_control)/launch/start_v3.launch">
-		<arg name="package" value="dnb_gantry_simulator"/>
-		<arg name="robot" value="gantry"/>
-	</include>
+	<!-- Start remote robot control node (jog interface only, no interactive marker) -->
+	<node name="dnb_remote_robot_control" pkg="dnb_remote_robot_control" type="delta_interface_v3.py" clear_params="true">
+		<rosparam file="$(find dnb_remote_robot_control)/config/general.yaml" command="load" />
+		<rosparam file="$(find dnb_gantry_simulator)/module_config/robot/gantry.yaml" command="load" />
+	</node>
+
+	<!-- DISABLED: Interactive marker nodes (for testing position switching bug)
+	<node name="dnb_remote_robot_control_interactive_marker" pkg="dnb_remote_robot_control" type="interactive_markers_node" />
+	<node name="interactive_marker_proxy_tool" pkg="interactive_marker_proxy" type="proxy" output="screen">
+		<remap from="topic_ns" to="/remotecontrol_markers_tool" />
+		<remap from="target_frame" to="tool0" />
+	</node>
+	<node name="interactive_marker_proxy_base" pkg="interactive_marker_proxy" type="proxy" output="screen">
+		<remap from="topic_ns" to="/remotecontrol_markers_base" />
+		<remap from="target_frame" to="tool0" />
+	</node>
+	<node name="interactive_marker_proxy_world" pkg="interactive_marker_proxy" type="proxy" output="screen">
+		<remap from="topic_ns" to="/remotecontrol_markers_world" />
+		<remap from="target_frame" to="tool0" />
+	</node>
+	-->
 
 	<!-- Start dnb_tool_manager explicitly if not already started by start_v3.launch -->
 	<node name="dnb_tool_manager" pkg="dnb_tool_manager" type="dnb_tool_manager_node" output="screen" respawn="true"/>
