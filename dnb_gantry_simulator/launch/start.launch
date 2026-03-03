@@ -51,6 +51,9 @@
 	<node name="dnb_remote_robot_control" pkg="dnb_remote_robot_control" type="delta_interface_v3.py" clear_params="true">
 		<rosparam file="$(find dnb_remote_robot_control)/config/general.yaml" command="load" />
 		<rosparam file="$(find dnb_gantry_simulator)/module_config/robot/gantry.yaml" command="load" />
+		<!-- Remap to use gantry driver's topic instead of dnb_tool_manager's -->
+		<remap from="dnb_tool_frame_robotbase" to="/dnb_gantry_simulator/tool_frame"/>
+		<remap from="dnb_tool_frame" to="/dnb_gantry_simulator/tool_frame"/>
 	</node>
 
 	<!-- DISABLED: Interactive marker nodes (for testing position switching bug)
