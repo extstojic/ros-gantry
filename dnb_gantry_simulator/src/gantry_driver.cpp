@@ -109,7 +109,7 @@ GantryDriver::~GantryDriver() {
 }
 
 void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
-    // Publish current position at 100Hz - faster than dnb_tool_manager to dominate the topic
+    // Publish current position topics at 100Hz
     GantryPosition current_pos = controller->getCurrentPosition();
     robot_movement_interface::EulerFrame tcp_pose;
     tcp_pose.x = current_pos.x;
@@ -120,26 +120,14 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     tcp_pose.gamma = 0.0;
     pub_dnb_tool_frame.publish(tcp_pose);
     pub_dnb_tool_frame_global.publish(tcp_pose);
-    pub_dnb_tool_frame_robotbase.publish(tcp_pose);  // Publish faster to win race with dnb_tool_manager
+    pub_dnb_tool_frame_robotbase.publish(tcp_pose);
     
     // Republish speed scale to ensure it stays at 1.0
     std_msgs::Float32 speed_scale_msg;
     speed_scale_msg.data = 1.0;
     pub_current_speed_scale.publish(speed_scale_msg);
     
-    // Also broadcast TF frames at high rate
-    ros::Time now = ros::Time::now();
-    geometry_msgs::TransformStamped tf;
-    tf.header.stamp = now;
-    tf.transform.translation.x = current_pos.x;
-    tf.transform.translation.y = current_pos.y;
-    tf.transform.translation.z = current_pos.z;
-    tf.transform.rotation.w = 1.0;
-    
-    // Publish robot_base -> dnb_tool_frame (for dnb_tool_manager)
-    tf.header.frame_id = "robot_base";
-    tf.child_frame_id = "dnb_tool_frame";
-    broadcaster.sendTransform(tf);
+    // NOTE: Do NOT publish TFs here - robot_state_publisher handles TFs from joint_states
 }
 
 void GantryDriver::publishJointStates(GantryPosition position) {
@@ -162,40 +150,17 @@ void GantryDriver::publishJointStates(GantryPosition position) {
 void GantryDriver::cb_update(GantryPosition position, bool moved) {
     publishJointStates(position);
 
-    ros::Time now = ros::Time::now();
-    
-    geometry_msgs::TransformStamped tf;
-    tf.header.stamp = now;
-    tf.transform.rotation.w = 1.0;
-    
-    // Publish robot_base -> end_effector
-    tf.header.frame_id = "robot_base";
-    tf.child_frame_id = "end_effector";
-    tf.transform.translation.x = position.x;
-    tf.transform.translation.y = position.y;
-    tf.transform.translation.z = position.z;
-    broadcaster.sendTransform(tf);
-
-    // Publish robot_base -> dnb_tool_frame (CRITICAL: dnb_tool_manager looks for this frame)
-    tf.child_frame_id = "dnb_tool_frame";
-    broadcaster.sendTransform(tf);
-
-    // Publish manufacturer_base -> robot_state_tcp for drag&bot compatibility
-    tf.header.frame_id = "manufacturer_base";
-    tf.child_frame_id = "robot_state_tcp";
-    broadcaster.sendTransform(tf);
-
-    // Publish TCP pose topics
+    // Publish TCP pose topics (TFs come from robot_state_publisher via URDF chain)
     robot_movement_interface::EulerFrame tcp_pose;
     tcp_pose.x = position.x;
     tcp_pose.y = position.y;
     tcp_pose.z = position.z;
-    tcp_pose.alpha = 0.0;  // No rotation for gantry
+    tcp_pose.alpha = 0.0;
     tcp_pose.beta = 0.0;
     tcp_pose.gamma = 0.0;
     pub_dnb_tool_frame.publish(tcp_pose);
     pub_dnb_tool_frame_global.publish(tcp_pose);
-    pub_dnb_tool_frame_robotbase.publish(tcp_pose);  // Publish at 100Hz to dominate dnb_tool_manager's updates
+    pub_dnb_tool_frame_robotbase.publish(tcp_pose);
 
     stop_queue.callAvailable(ros::WallDuration());
 
