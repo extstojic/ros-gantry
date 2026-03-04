@@ -27,7 +27,6 @@ GantryDriver::GantryDriver(GantryController* controller) {
     ROS_INFO("Gantry limits: X[%.2f, %.2f] Y[%.2f, %.2f] Z[%.2f, %.2f] MaxSpeed: %.2f",
              min_x, max_x, min_y, max_y, min_z, max_z, max_speed);
 
-    // Initialize controller with limits and initial position at center
     GantryLimits limits = {min_x, max_x, min_y, max_y, min_z, max_z, 0.0, max_speed};
     GantryPosition init_pos = {0.0, 0.0, 0.0};
     controller->initialize(limits, init_pos, max_speed * 0.5);
@@ -55,7 +54,6 @@ GantryDriver::GantryDriver(GantryController* controller) {
     // Also publish to global topic for drag&bot marker to use directly
     pub_dnb_tool_frame_global = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame", 100, true);
     
-    // CRITICAL: delta_interface_v3.py subscribes to this topic for current_pose used in jog calculations
     pub_dnb_tool_frame_robotbase = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame_robotbase", 100, true);
 
     // CRITICAL: delta_interface multiplies jog delta by this value - must be non-zero!
@@ -111,6 +109,11 @@ GantryDriver::~GantryDriver() {
 void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     // Publish current position topics at 100Hz
     GantryPosition current_pos = controller->getCurrentPosition();
+    
+    // CRITICAL: Publish joint states at same rate as tool frame to keep TF buffer in sync
+    // This prevents "extrapolation into the past" errors from other nodes
+    publishJointStates(current_pos);
+    
     robot_movement_interface::EulerFrame tcp_pose;
     tcp_pose.x = current_pos.x;
     tcp_pose.y = current_pos.y;
