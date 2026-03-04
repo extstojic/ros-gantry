@@ -228,20 +228,58 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
     }
 }
 
-// Timer: process pending commands sequentially
+// Timer: process pending commands sequentially (NON-BLOCKING with state machine)
 void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
-    if (processing_command) return; // still executing
+    // Check if a command is being executed
+    if (processing_command) {
+        // Check if movement finished
+        GantryPosition pos = controller->getCurrentPosition();
+        double dx = command_target.x - pos.x;
+        double dy = command_target.y - pos.y;
+        double dz = command_target.z - pos.z;
+        double dist = std::sqrt(dx*dx + dy*dy + dz*dz);
+        
+        bool finished = (dist < 0.000001);  // ZERO_BORDER
+        
+        // Timeout check - if waiting longer than 30s, something is wrong
+        double elapsed = (ros::Time::now() - command_start_time).toSec();
+        if (elapsed > 30.0) {
+            ROS_ERROR("Command execution timeout - stopping");
+            controller->stop();
+            robot_movement_interface::Result result;
+            result.header.stamp = ros::Time::now();
+            result.command_id = current_command_id;
+            result.result_code = robot_movement_interface::Result::FAILURE_STOP_TRIGGERED;
+            result.additional_information = "Command timeout (>30s)";
+            pub_command_result.publish(result);
+            processing_command = false;
+            return;
+        }
+        
+        if (finished) {
+            robot_movement_interface::Result result;
+            result.header.stamp = ros::Time::now();
+            result.command_id = current_command_id;
+            result.result_code = robot_movement_interface::Result::SUCCESS;
+            result.additional_information = "Move completed";
+            pub_command_result.publish(result);
+            processing_command = false;
+            // Fall through to process next command
+        } else {
+            return;  // Still moving, check again next timer tick
+        }
+    }
+    
+    // No command executing - check for next command
     if (command_queue.empty()) return;
 
-    // Pop front and execute
+    // Pop front and START executing (don't wait for it to finish!)
     robot_movement_interface::Command cmd = command_queue.front();
     command_queue.pop_front();
 
     processing_command = true;
-
-    robot_movement_interface::Result result;
-    result.header.stamp = ros::Time::now();
-    result.command_id = cmd.command_id;
+    current_command_id = cmd.command_id;
+    command_start_time = ros::Time::now();
 
     // Basic handling similar to original logic
     std::string cmd_type = cmd.command_type;
@@ -272,42 +310,27 @@ void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
 
             controller->setSpeed(speed);
             controller->setTarget(x, y, z);  // Now clamps to limits
+            command_target = {x, y, z};      // Store target for comparison in next tick
             
-            // Don't block forever - timeout after 30 seconds
-            ros::Time start_time = ros::Time::now();
-            bool finished = false;
-            while (ros::ok() && !finished) {
-                if (controller->awaitFinished()) {
-                    finished = true;
-                    result.result_code = robot_movement_interface::Result::SUCCESS;
-                    result.additional_information = "Move completed";
-                    GantryPosition final_pos = controller->getCurrentPosition();
-                    cb_update(final_pos, true);
-                    break;
-                }
-                
-                // Timeout check - if waiting longer than 30s, something is wrong
-                if ((ros::Time::now() - start_time).toSec() > 30.0) {
-                    ROS_ERROR("Command execution timeout - stopping");
-                    controller->stop();
-                    result.result_code = robot_movement_interface::Result::FAILURE_STOP_TRIGGERED;
-                    result.additional_information = "Command timeout (>30s)";
-                    break;
-                }
-                
-                ros::Duration(0.01).sleep();  // Check every 10ms
-            }
+            ROS_INFO("Gantry: Starting command execution: move to (%.4f, %.4f, %.4f)", x, y, z);
         } else {
+            robot_movement_interface::Result result;
+            result.header.stamp = ros::Time::now();
+            result.command_id = cmd.command_id;
             result.result_code = robot_movement_interface::Result::FAILURE_EXECUTION;
             result.additional_information = "Invalid pose: need at least 3 values (x,y,z)";
+            pub_command_result.publish(result);
+            processing_command = false;
         }
     } else {
+        robot_movement_interface::Result result;
+        result.header.stamp = ros::Time::now();
+        result.command_id = cmd.command_id;
         result.result_code = robot_movement_interface::Result::SUCCESS;
         result.additional_information = "Command type not implemented for gantry";
+        pub_command_result.publish(result);
+        processing_command = false;
     }
-
-    pub_command_result.publish(result);
-    processing_command = false;  // ALWAYS reset this flag
 }
 
 bool GantryDriver::cb_get_fk(robot_movement_interface::GetFK::Request &req, robot_movement_interface::GetFK::Response &res) {

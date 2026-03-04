@@ -54,6 +54,9 @@ private:
     std::deque<robot_movement_interface::Command> command_queue;
     ros::Timer process_command_timer;
     bool processing_command = false;
+    GantryPosition command_target = {0.0, 0.0, 0.0};  // Target position being moved towards
+    int current_command_id = 0;                        // Command ID being executed
+    ros::Time command_start_time;                      // When current command started (for timeout)
     ros::Publisher pub_notify_changed_transforms;
     ros::Publisher pub_joint_states;
     ros::Publisher pub_joint_states_global;
