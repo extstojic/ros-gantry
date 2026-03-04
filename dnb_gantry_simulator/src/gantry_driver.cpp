@@ -85,12 +85,17 @@ GantryDriver::GantryDriver(GantryController* controller) {
     // Immediately publish initial position so marker can read it
     GantryPosition current_pos = controller->getCurrentPosition();
     robot_movement_interface::EulerFrame init_tcp;
+    init_tcp.header.stamp = ros::Time::now();
+    init_tcp.header.frame_id = "tool0";
     init_tcp.x = current_pos.x;
     init_tcp.y = current_pos.y;
     init_tcp.z = current_pos.z;
     init_tcp.alpha = 0.0;
     init_tcp.beta = 0.0;
     init_tcp.gamma = 0.0;
+    
+    ROS_INFO("[INIT] Publishing initial tool frame: x=%.4f, y=%.4f, z=%.4f", current_pos.x, current_pos.y, current_pos.z);
+    
     pub_dnb_tool_frame.publish(init_tcp);
     pub_dnb_tool_frame_global.publish(init_tcp);
     pub_dnb_tool_frame_robotbase.publish(init_tcp);  // For delta_interface jog commands
@@ -114,13 +119,20 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     // This prevents "extrapolation into the past" errors from other nodes
     publishJointStates(current_pos);
     
+    // Create and fully initialize EulerFrame message
     robot_movement_interface::EulerFrame tcp_pose;
+    tcp_pose.header.stamp = ros::Time::now();
+    tcp_pose.header.frame_id = "tool0";
     tcp_pose.x = current_pos.x;
     tcp_pose.y = current_pos.y;
     tcp_pose.z = current_pos.z;
     tcp_pose.alpha = 0.0;
     tcp_pose.beta = 0.0;
     tcp_pose.gamma = 0.0;
+    
+    ROS_DEBUG_THROTTLE(1.0, "[PUB 100Hz] Publishing tool frame: x=%.6f y=%.6f z=%.6f alpha=%.2f beta=%.2f gamma=%.2f @ time %.9f",
+                       tcp_pose.x, tcp_pose.y, tcp_pose.z, tcp_pose.alpha, tcp_pose.beta, tcp_pose.gamma, tcp_pose.header.stamp.toSec());
+    
     pub_dnb_tool_frame.publish(tcp_pose);
     pub_dnb_tool_frame_global.publish(tcp_pose);
     pub_dnb_tool_frame_robotbase.publish(tcp_pose);
@@ -136,7 +148,7 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
 void GantryDriver::publishJointStates(GantryPosition position) {
     sensor_msgs::JointState joint_state;
     joint_state.header.stamp = ros::Time::now();
-    joint_state.header.frame_id = "robot_base";  // Add frame_id
+    joint_state.header.frame_id = "robot_base";
     joint_state.name.push_back("x_joint");
     joint_state.name.push_back("y_joint");
     joint_state.name.push_back("z_joint");
@@ -146,17 +158,25 @@ void GantryDriver::publishJointStates(GantryPosition position) {
     joint_state.velocity.push_back(0.0);
     joint_state.velocity.push_back(0.0);
     joint_state.velocity.push_back(0.0);
+    
+    ROS_DEBUG_THROTTLE(1.0, "[PUB JointState] x=%.6f y=%.6f z=%.6f @ %.9f", 
+                       position.x, position.y, position.z, joint_state.header.stamp.toSec());
+    
     pub_joint_states.publish(joint_state);
-    pub_joint_states_global.publish(joint_state);  // Also publish to /joint_states for robot_state_publisher
+    pub_joint_states_global.publish(joint_state);
 }
 
 void GantryDriver::cb_update(GantryPosition position, bool moved) {
     // Single source of truth: position_update_timer publishes joint states and TCP pose at 100Hz
     // Only handle callback queue and movement notification here
     
+    ROS_DEBUG("[cb_update] called with position: x=%.6f, y=%.6f, z=%.6f, moved=%d", 
+              position.x, position.y, position.z, moved ? 1 : 0);
+    
     stop_queue.callAvailable(ros::WallDuration());
 
     if (moved) {
+        ROS_DEBUG("[cb_update] Publishing movement notification");
         std_msgs::Empty msg;
         pub_notify_changed_transforms.publish(msg);
     }
