@@ -63,7 +63,9 @@ private:
     ros::Publisher pub_status;
     ros::Publisher pub_robot_status;
     ros::Publisher pub_command_result;
-    ros::Publisher pub_dnb_tool_frame;  // Single source of truth for tool frame
+    ros::Publisher pub_dnb_tool_frame;
+    ros::Publisher pub_dnb_tool_frame_global;
+    ros::Publisher pub_dnb_tool_frame_robotbase;  // For delta_interface jog commands
     ros::Publisher pub_current_speed_scale;  // Speed multiplier for jog commands
     ros::Timer position_update_timer;
 

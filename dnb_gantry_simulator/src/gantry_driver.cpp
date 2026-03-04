@@ -51,9 +51,9 @@ GantryDriver::GantryDriver(GantryController* controller) {
     pub_command_result = nh.advertise<robot_movement_interface::Result>("/command_result", 10);
     pub_dnb_tool_frame = private_nh.advertise<robot_movement_interface::EulerFrame>("tool_frame", 100, true);  // Latched tool frame for marker initialization
     
-    // DO NOT publish to /dnb_tool_frame or /dnb_tool_frame_robotbase directly
-    // Let dnb_tool_manager handle republishing from /dnb_gantry_simulator/tool_frame
-    // This ensures single source of truth and consistent timing
+    // Also publish to global topic for UI to read directly (ensures consistent 100Hz)
+    pub_dnb_tool_frame_global = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame", 100, true);
+    pub_dnb_tool_frame_robotbase = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame_robotbase", 100, true);
 
     // CRITICAL: delta_interface multiplies jog delta by this value - must be non-zero!
     pub_current_speed_scale = nh.advertise<std_msgs::Float32>("/current_speed_scale", 10, true);
@@ -93,7 +93,9 @@ GantryDriver::GantryDriver(GantryController* controller) {
     
     ROS_INFO("[INIT] Publishing initial tool frame: x=%.4f, y=%.4f, z=%.4f", current_pos.x, current_pos.y, current_pos.z);
     
-    pub_dnb_tool_frame.publish(init_tcp);  // Single source via /dnb_gantry_simulator/tool_frame
+    pub_dnb_tool_frame.publish(init_tcp);
+    pub_dnb_tool_frame_global.publish(init_tcp);
+    pub_dnb_tool_frame_robotbase.publish(init_tcp);  // For delta_interface jog commands
     
     // Start a timer to publish position continuously at high rate (100Hz) to override dnb_tool_manager
     position_update_timer = private_nh.createTimer(ros::Duration(0.01), 
@@ -126,9 +128,10 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     ROS_DEBUG_THROTTLE(1.0, "[PUB 100Hz] Publishing tool frame: x=%.6f y=%.6f z=%.6f alpha=%.2f beta=%.2f gamma=%.2f",
                        tcp_pose.x, tcp_pose.y, tcp_pose.z, tcp_pose.alpha, tcp_pose.beta, tcp_pose.gamma);
     
-    // Single source of truth: publish only to /dnb_gantry_simulator/tool_frame
-    // dnb_tool_manager will republish to /dnb_tool_frame and /dnb_tool_frame_robotbase
+    // Publish to all three topics at consistent 100Hz (single source of truth from driver)
     pub_dnb_tool_frame.publish(tcp_pose);
+    pub_dnb_tool_frame_global.publish(tcp_pose);
+    pub_dnb_tool_frame_robotbase.publish(tcp_pose);
     
     // Republish speed scale to ensure it stays at 1.0
     std_msgs::Float32 speed_scale_msg;
