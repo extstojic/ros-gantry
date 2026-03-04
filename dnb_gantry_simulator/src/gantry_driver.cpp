@@ -49,11 +49,14 @@ GantryDriver::GantryDriver(GantryController* controller) {
     // Robot movement interface (for UI jogging/movement commands)
     sub_command_list = nh.subscribe("/command_list", 10, &GantryDriver::cb_command_list, this);
     pub_command_result = nh.advertise<robot_movement_interface::Result>("/command_result", 10);
-    pub_dnb_tool_frame = private_nh.advertise<robot_movement_interface::EulerFrame>("tool_frame", 10, true);  // Latched, our private topic
+    pub_dnb_tool_frame = private_nh.advertise<robot_movement_interface::EulerFrame>("tool_frame", 10, true);
     
-    // DO NOT publish to /dnb_tool_frame or /dnb_tool_frame_robotbase directly!
-    // dnb_tool_manager owns those topics. Having two publishers causes flickering.
-    // dnb_tool_manager reads from /dnb_gantry_simulator/tool_frame and republishes.
+    // Fully replace dnb_tool_manager: publish to ALL topics it normally owns
+    // dnb_tool_manager is killed on startup to prevent dual-publisher flickering
+    pub_dnb_tool_frame_global = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame", 10, true);
+    pub_dnb_tool_frame_robotbase = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame_robotbase", 10, true);
+    pub_tool_frame = nh.advertise<robot_movement_interface::EulerFrame>("/tool_frame", 10, true);
+    pub_tool_frame_world = nh.advertise<robot_movement_interface::EulerFrame>("/tool_frame_world", 10, true);
 
     // CRITICAL: delta_interface multiplies jog delta by this value - must be non-zero!
     pub_current_speed_scale = nh.advertise<std_msgs::Float32>("/current_speed_scale", 10, true);
@@ -93,7 +96,11 @@ GantryDriver::GantryDriver(GantryController* controller) {
     
     ROS_INFO("[INIT] Publishing initial tool frame: x=%.4f, y=%.4f, z=%.4f", current_pos.x, current_pos.y, current_pos.z);
     
-    pub_dnb_tool_frame.publish(init_tcp);  // Only to our private topic
+    pub_dnb_tool_frame.publish(init_tcp);
+    pub_dnb_tool_frame_global.publish(init_tcp);
+    pub_dnb_tool_frame_robotbase.publish(init_tcp);
+    pub_tool_frame.publish(init_tcp);
+    pub_tool_frame_world.publish(init_tcp);
     
     // Start a timer to publish position continuously at high rate (100Hz) to override dnb_tool_manager
     position_update_timer = private_nh.createTimer(ros::Duration(0.01), 
@@ -123,10 +130,28 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     tcp_pose.beta = 0.0;
     tcp_pose.gamma = 0.0;
     
-    // Only publish to our private topic - dnb_tool_manager handles /dnb_tool_frame
+    // Publish to ALL topics (we fully replace dnb_tool_manager)
     pub_dnb_tool_frame.publish(tcp_pose);
+    pub_dnb_tool_frame_global.publish(tcp_pose);
+    pub_dnb_tool_frame_robotbase.publish(tcp_pose);
+    pub_tool_frame.publish(tcp_pose);
+    pub_tool_frame_world.publish(tcp_pose);
     
-    ROS_DEBUG_THROTTLE(1.0, "[PUB 100Hz] x=%.6f y=%.6f z=%.6f (published to all 3 topics)",
+    // Broadcast TF: tool0 -> dnb_tool_frame (replaces dnb_tool_manager's TF broadcast)
+    geometry_msgs::TransformStamped tf_msg;
+    tf_msg.header.stamp = ros::Time::now();
+    tf_msg.header.frame_id = "tool0";
+    tf_msg.child_frame_id = "dnb_tool_frame";
+    tf_msg.transform.translation.x = 0.0;
+    tf_msg.transform.translation.y = 0.0;
+    tf_msg.transform.translation.z = 0.0;
+    tf_msg.transform.rotation.x = 0.0;
+    tf_msg.transform.rotation.y = 0.0;
+    tf_msg.transform.rotation.z = 0.0;
+    tf_msg.transform.rotation.w = 1.0;
+    broadcaster.sendTransform(tf_msg);
+    
+    ROS_DEBUG_THROTTLE(1.0, "[PUB 100Hz] x=%.6f y=%.6f z=%.6f",
                        tcp_pose.x, tcp_pose.y, tcp_pose.z);
     
     // Republish speed scale to ensure it stays at 1.0
