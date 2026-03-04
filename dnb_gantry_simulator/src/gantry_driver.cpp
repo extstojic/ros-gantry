@@ -151,20 +151,9 @@ void GantryDriver::publishJointStates(GantryPosition position) {
 }
 
 void GantryDriver::cb_update(GantryPosition position, bool moved) {
-    publishJointStates(position);
-
-    // Publish TCP pose topics (TFs come from robot_state_publisher via URDF chain)
-    robot_movement_interface::EulerFrame tcp_pose;
-    tcp_pose.x = position.x;
-    tcp_pose.y = position.y;
-    tcp_pose.z = position.z;
-    tcp_pose.alpha = 0.0;
-    tcp_pose.beta = 0.0;
-    tcp_pose.gamma = 0.0;
-    pub_dnb_tool_frame.publish(tcp_pose);
-    pub_dnb_tool_frame_global.publish(tcp_pose);
-    pub_dnb_tool_frame_robotbase.publish(tcp_pose);
-
+    // Single source of truth: position_update_timer publishes joint states and TCP pose at 100Hz
+    // Only handle callback queue and movement notification here
+    
     stop_queue.callAvailable(ros::WallDuration());
 
     if (moved) {
