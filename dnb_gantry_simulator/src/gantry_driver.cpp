@@ -85,8 +85,6 @@ GantryDriver::GantryDriver(GantryController* controller) {
     // Immediately publish initial position so marker can read it
     GantryPosition current_pos = controller->getCurrentPosition();
     robot_movement_interface::EulerFrame init_tcp;
-    init_tcp.header.stamp = ros::Time::now();
-    init_tcp.header.frame_id = "tool0";
     init_tcp.x = current_pos.x;
     init_tcp.y = current_pos.y;
     init_tcp.z = current_pos.z;
@@ -119,10 +117,8 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     // This prevents "extrapolation into the past" errors from other nodes
     publishJointStates(current_pos);
     
-    // Create and fully initialize EulerFrame message
+    // Create and fully initialize EulerFrame message (has no header, just x,y,z,alpha,beta,gamma)
     robot_movement_interface::EulerFrame tcp_pose;
-    tcp_pose.header.stamp = ros::Time::now();
-    tcp_pose.header.frame_id = "tool0";
     tcp_pose.x = current_pos.x;
     tcp_pose.y = current_pos.y;
     tcp_pose.z = current_pos.z;
@@ -130,8 +126,8 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     tcp_pose.beta = 0.0;
     tcp_pose.gamma = 0.0;
     
-    ROS_DEBUG_THROTTLE(1.0, "[PUB 100Hz] Publishing tool frame: x=%.6f y=%.6f z=%.6f alpha=%.2f beta=%.2f gamma=%.2f @ time %.9f",
-                       tcp_pose.x, tcp_pose.y, tcp_pose.z, tcp_pose.alpha, tcp_pose.beta, tcp_pose.gamma, tcp_pose.header.stamp.toSec());
+    ROS_DEBUG_THROTTLE(1.0, "[PUB 100Hz] Publishing tool frame: x=%.6f y=%.6f z=%.6f alpha=%.2f beta=%.2f gamma=%.2f",
+                       tcp_pose.x, tcp_pose.y, tcp_pose.z, tcp_pose.alpha, tcp_pose.beta, tcp_pose.gamma);
     
     pub_dnb_tool_frame.publish(tcp_pose);
     pub_dnb_tool_frame_global.publish(tcp_pose);
