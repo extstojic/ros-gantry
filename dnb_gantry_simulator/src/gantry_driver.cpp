@@ -49,11 +49,11 @@ GantryDriver::GantryDriver(GantryController* controller) {
     // Robot movement interface (for UI jogging/movement commands)
     sub_command_list = nh.subscribe("/command_list", 10, &GantryDriver::cb_command_list, this);
     pub_command_result = nh.advertise<robot_movement_interface::Result>("/command_result", 10);
-    pub_dnb_tool_frame = private_nh.advertise<robot_movement_interface::EulerFrame>("tool_frame", 100, true);  // Latched tool frame for marker initialization
+    pub_dnb_tool_frame = private_nh.advertise<robot_movement_interface::EulerFrame>("tool_frame", 100, false);  // NOT latched - publish fresh every 10ms
     
     // Also publish to global topic for UI to read directly (ensures consistent 100Hz)
-    pub_dnb_tool_frame_global = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame", 100, true);
-    pub_dnb_tool_frame_robotbase = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame_robotbase", 100, true);
+    pub_dnb_tool_frame_global = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame", 100, false);
+    pub_dnb_tool_frame_robotbase = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame_robotbase", 100, false);
 
     // CRITICAL: delta_interface multiplies jog delta by this value - must be non-zero!
     pub_current_speed_scale = nh.advertise<std_msgs::Float32>("/current_speed_scale", 10, true);
@@ -125,13 +125,13 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     tcp_pose.beta = 0.0;
     tcp_pose.gamma = 0.0;
     
-    ROS_DEBUG_THROTTLE(1.0, "[PUB 100Hz] Publishing tool frame: x=%.6f y=%.6f z=%.6f alpha=%.2f beta=%.2f gamma=%.2f",
-                       tcp_pose.x, tcp_pose.y, tcp_pose.z, tcp_pose.alpha, tcp_pose.beta, tcp_pose.gamma);
-    
-    // Publish to all three topics at consistent 100Hz (single source of truth from driver)
+    // Publish all three topics WITH THE SAME MESSAGE to ensure consistency
     pub_dnb_tool_frame.publish(tcp_pose);
     pub_dnb_tool_frame_global.publish(tcp_pose);
     pub_dnb_tool_frame_robotbase.publish(tcp_pose);
+    
+    ROS_DEBUG_THROTTLE(1.0, "[PUB 100Hz] x=%.6f y=%.6f z=%.6f (published to all 3 topics)",
+                       tcp_pose.x, tcp_pose.y, tcp_pose.z);
     
     // Republish speed scale to ensure it stays at 1.0
     std_msgs::Float32 speed_scale_msg;
