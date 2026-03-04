@@ -17,6 +17,10 @@
 	<param name="/dnb_tool_manager/tool_frame_topic" value="/dnb_gantry_simulator/tool_frame"/>
 	<param name="/dnb_tool_manager/tool_frame_robotbase_topic" value="/dnb_gantry_simulator/tool_frame"/>
 
+	<!-- Kill dnb_tool_manager (started by dnb_bundle) and restart it with correct params -->
+	<!-- It was started before our params were set, so it uses stale TF-based config -->
+	<node pkg="dnb_gantry_simulator" type="kill_tool_manager.sh" name="restart_tool_manager" output="screen" />
+
 	<!-- Load URDF robot model -->
 	<param name="robot_description" command="$(find xacro)/xacro '$(find dnb_gantry_simulator)/urdf/gantry.urdf'"/>
 
