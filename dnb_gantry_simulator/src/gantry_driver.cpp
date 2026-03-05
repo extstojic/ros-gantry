@@ -97,18 +97,7 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     pub_tool_frame.publish(tcp_pose);
     pub_tool_frame_world.publish(tcp_pose);
     
-    geometry_msgs::TransformStamped tf_msg;
-    tf_msg.header.stamp = now;
-    tf_msg.header.frame_id = "tool0";
-    tf_msg.child_frame_id = "dnb_tool_frame";
-    tf_msg.transform.translation.x = 0.0;
-    tf_msg.transform.translation.y = 0.0;
-    tf_msg.transform.translation.z = 0.0;
-    tf_msg.transform.rotation.x = 0.0;
-    tf_msg.transform.rotation.y = 0.0;
-    tf_msg.transform.rotation.z = 0.0;
-    tf_msg.transform.rotation.w = 1.0;
-    broadcaster.sendTransform(tf_msg);
+    // TF broadcast removed - dnb_tool_manager handles it based on our EulerFrame messages
 }
 
 void GantryDriver::publishJointStates(GantryPosition position) {

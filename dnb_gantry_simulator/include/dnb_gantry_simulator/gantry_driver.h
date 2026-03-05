@@ -3,8 +3,6 @@
 
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
-#include <tf2_ros/transform_broadcaster.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Float32.h>
 #include <dnb_msgs/ComponentStatus.h>
@@ -73,8 +71,6 @@ private:
     ros::Timer position_update_timer;
 
     ros::Time last_tool_frame_publish_time;
-
-    tf2_ros::TransformBroadcaster broadcaster;
     GantryController* controller;
 };
 
