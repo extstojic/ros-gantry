@@ -161,6 +161,7 @@ bool GantryDriver::cb_move(dnb_gantry_simulator::MoveGantry::Request &req, dnb_g
 
 bool GantryDriver::cb_stop(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res) {
     controller->stop();
+    processing_command = false;
     res.success = true;
     return true;
 }
@@ -175,6 +176,7 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
     ROS_INFO("Gantry received command list with %lu commands", msg->commands.size());
     if (msg->replace_previous_commands) {
         command_queue.clear();
+        processing_command = false;
     }
     for (const auto &cmd : msg->commands) {
         command_queue.push_back(cmd);

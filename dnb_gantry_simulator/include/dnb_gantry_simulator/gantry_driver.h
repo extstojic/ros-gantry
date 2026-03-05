@@ -20,6 +20,7 @@
 #include <deque>
 #include <dnb_gantry_simulator/gantry_controller.h>
 #include <dnb_gantry_simulator/MoveGantry.h>
+#include <atomic>
 
 namespace simulator {
 
@@ -53,7 +54,7 @@ private:
     ros::Subscriber sub_command_list;
     std::deque<robot_movement_interface::Command> command_queue;
     ros::Timer process_command_timer;
-    bool processing_command = false;
+    std::atomic<bool> processing_command{false};
     GantryPosition command_target = {0.0, 0.0, 0.0};  // Target position being moved towards
     int current_command_id = 0;                        // Command ID being executed
     ros::Time command_start_time;                      // When current command started (for timeout)
