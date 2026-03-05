@@ -334,7 +334,7 @@
       <geometry>
         <cylinder radius="0.04" length="0.02"/>
       </geometry>
-      <origin xyz="0 0 0.21" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.21" rpy="0 0 0"/>
       <material name="dark_steel"/>
     </visual>
     <!-- Tool body (extends downward from mounting plate) -->
