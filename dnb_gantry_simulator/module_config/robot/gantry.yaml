@@ -13,7 +13,7 @@ tool_frame_topic: '/dnb_gantry_simulator/tool_frame'
 tool_frame_source: 'topic'
 
 # Tool frame robotbase - used by delta_interface for jog calculations
-tool_frame_robotbase_topic: '/dnb_gantry_simulator/tool_frame'
+tool_frame_robotbase_topic: '/dnb_tool_frame_robotbase'
 
 # Custom initialization service that returns current robot position
 marker_init_service: '/dnb_gantry_simulator_node/get_marker_init'

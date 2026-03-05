@@ -15,7 +15,7 @@
 	<!-- Configure dnb_tool_manager to read from gantry driver topic (it's started by dnb_bundle) -->
 	<param name="/dnb_tool_manager/tool_frame_source" value="topic"/>
 	<param name="/dnb_tool_manager/tool_frame_topic" value="/dnb_gantry_simulator/tool_frame"/>
-	<param name="/dnb_tool_manager/tool_frame_robotbase_topic" value="/dnb_gantry_simulator/tool_frame"/>
+	<param name="/dnb_tool_manager/tool_frame_robotbase_topic" value="/dnb_tool_frame_robotbase"/>
 
 	<!-- Kill dnb_tool_manager (started by dnb_bundle) and restart it with correct params -->
 	<!-- It was started before our params were set, so it uses stale TF-based config -->
@@ -61,7 +61,7 @@
 		<rosparam file="$(find dnb_remote_robot_control)/config/general.yaml" command="load" />
 		<rosparam file="$(find dnb_gantry_simulator)/module_config/robot/gantry.yaml" command="load" />
 		<!-- Remap to use gantry driver's topic instead of dnb_tool_manager's -->
-		<remap from="dnb_tool_frame_robotbase" to="/dnb_gantry_simulator/tool_frame"/>
+		<remap from="dnb_tool_frame_robotbase" to="/dnb_tool_frame_robotbase"/>
 		<remap from="dnb_tool_frame" to="/dnb_gantry_simulator/tool_frame"/>
 	</node>
 
