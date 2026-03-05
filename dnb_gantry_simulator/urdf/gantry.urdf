@@ -334,7 +334,7 @@
       <geometry>
         <cylinder radius="0.04" length="0.02"/>
       </geometry>
-      <origin xyz="0 0 -0.21" rpy="0 0 0"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
       <material name="dark_steel"/>
     </visual>
     <!-- Tool body (extends downward from mounting plate) -->
@@ -342,7 +342,7 @@
       <geometry>
         <cylinder radius="0.03" length="0.10"/>
       </geometry>
-      <origin xyz="0 0 0.15" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.06" rpy="0 0 0"/>
       <material name="red_tool"/>
     </visual>
     <!-- Tool tip (at the very bottom) -->
@@ -350,7 +350,7 @@
       <geometry>
         <cylinder radius="0.015" length="0.03"/>
       </geometry>
-      <origin xyz="0 0 0.11" rpy="0 0 0"/>
+      <origin xyz="0 0 -0.125" rpy="0 0 0"/>
       <material name="dark_steel"/>
     </visual>
     <collision>
@@ -364,7 +364,7 @@
   <joint name="effector_joint" type="fixed">
     <parent link="z_column"/>
     <child link="end_effector"/>
-    <origin xyz="0 0 -0.20" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.35" rpy="0 0 0"/>
   </joint>
 
   <!-- ============== TOOL FRAMES ============== -->
@@ -372,7 +372,7 @@
   <joint name="effector_to_tool0" type="fixed">
     <parent link="end_effector"/>
     <child link="tool0"/>
-    <origin xyz="0 0 -0.11" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.14" rpy="0 0 0"/>
   </joint>
 
   <!-- Manufacturer base frame for drag&bot compatibility -->
