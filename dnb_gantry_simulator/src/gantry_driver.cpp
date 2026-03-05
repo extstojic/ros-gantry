@@ -76,6 +76,12 @@ GantryDriver::~GantryDriver() {
 void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     GantryPosition current_pos = controller->getCurrentPosition();
     publishJointStates(current_pos);
+
+    const ros::Time now = ros::Time::now();
+    if (now == last_tool_frame_publish_time) {
+        return;
+    }
+    last_tool_frame_publish_time = now;
     
     robot_movement_interface::EulerFrame tcp_pose;
     tcp_pose.x = current_pos.x;
@@ -92,7 +98,7 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     pub_tool_frame_world.publish(tcp_pose);
     
     geometry_msgs::TransformStamped tf_msg;
-    tf_msg.header.stamp = ros::Time::now();
+    tf_msg.header.stamp = now;
     tf_msg.header.frame_id = "tool0";
     tf_msg.child_frame_id = "dnb_tool_frame";
     tf_msg.transform.translation.x = 0.0;

@@ -72,6 +72,8 @@ private:
     ros::Publisher pub_current_speed_scale;         // Speed multiplier for jog commands
     ros::Timer position_update_timer;
 
+    ros::Time last_tool_frame_publish_time;
+
     tf2_ros::TransformBroadcaster broadcaster;
     GantryController* controller;
 };
