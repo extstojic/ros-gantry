@@ -248,7 +248,16 @@ void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
             }
 
             controller->setSpeed(speed);
-            controller->setTarget(x, y, z);
+            if (!controller->setTarget(x, y, z)) {
+                robot_movement_interface::Result result;
+                result.header.stamp = ros::Time::now();
+                result.command_id = cmd.command_id;
+                result.result_code = robot_movement_interface::Result::FAILURE_EXECUTION;
+                result.additional_information = "Target out of bounds";
+                pub_command_result.publish(result);
+                processing_command = false;
+                return;
+            }
             command_target = {x, y, z};
             ROS_INFO("Gantry: move to (%.4f, %.4f, %.4f)", x, y, z);
         } else {
