@@ -266,7 +266,11 @@ void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
                 result.header.stamp = ros::Time::now();
                 result.command_id = cmd.command_id;
                 result.result_code = robot_movement_interface::Result::FAILURE_EXECUTION;
-                result.additional_information = "Target out of bounds";
+                if (is_joints) {
+                    result.additional_information = "Gantry joints are linear in meters (A1-A3 = x,y,z). A4-A6 ignored.";
+                } else {
+                    result.additional_information = "Target out of bounds";
+                }
                 pub_command_result.publish(result);
                 processing_command = false;
                 return;

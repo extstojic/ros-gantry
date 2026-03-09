@@ -3,6 +3,10 @@ name: 'Gantry Robot'
 robot_type: 'gantry'
 dof: 3
 
+# Override UI joint units for gantry (linear axes)
+units:
+  joints: 'm'
+
 update_rate: 50.0
 
 # Tool frame topic - this tells dnb_tool_manager where to READ position from
@@ -28,6 +32,12 @@ step_rotation_factor: 0.99
 
 # Step joints
 step_joints: 0.01  # 10 mm for prismatic joints
+
+# Joint limits for A1-A3 (x,y,z in meters)
+joint_limits:
+  - {min: -0.4, max: 0.4, type: 'linear', step: 0.01}
+  - {min: -0.3, max: 0.3, type: 'linear', step: 0.01}
+  - {min: -0.4, max: 0.4, type: 'linear', step: 0.01}
 
 # Joints delta
 joints_delta_replace: false
