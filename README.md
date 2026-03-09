@@ -39,29 +39,24 @@ The robot accepts standard drag&bot commands via `/command_list` topic.
 
 Use the drag&bot UI for jogging and motion control.
 
-## Examples
+## Example: Send Move Command
 
-Run basic motion demo:
-```bash
-rosrun dnb_gantry_simulator move_example.py
-```
-
-Run pick and place demo:
-```bash
-rosrun dnb_gantry_simulator pick_and_place_example.py
-```
-
-Send manual command:
 ```bash
 rostopic pub /command_list robot_movement_interface/CommandList "{
   replace_previous_commands: true,
-  commands: [{command_id: 1, command_type: 'LIN', 
-    pose: [0.1, 0.05, -0.2, 0, 0, 0], velocity: [0.1], velocity_type: 'M/S'}]}"
+  commands: [{
+    command_id: 1,
+    command_type: 'LIN',
+    pose: [0.1, 0.05, -0.2, 0, 0, 0],
+    velocity: [0.1],
+    velocity_type: 'M/S'
+  }]
+}"
 ```
 
 ## Configuration
 
-Adjust workspace limits:
+Edit workspace limits in launch file:
 ```bash
 roslaunch dnb_gantry_simulator start.launch min_x:=-0.5 max_x:=0.5
 ```
