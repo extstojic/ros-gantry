@@ -227,7 +227,20 @@ void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
     if (cmd_type.empty()) cmd_type = "LIN";
 
     if (cmd_type == "LIN" || cmd_type == "PTP" || cmd_type == "JOINTS") {
+        const bool is_joints = (cmd_type == "JOINTS");
         if (cmd.pose.size() >= 3) {
+            if (is_joints && cmd.pose.size() > 3) {
+                bool extras_nonzero = false;
+                for (size_t i = 3; i < cmd.pose.size(); ++i) {
+                    if (std::abs(cmd.pose[i]) > 1e-6) {
+                        extras_nonzero = true;
+                        break;
+                    }
+                }
+                if (extras_nonzero) {
+                    ROS_WARN("Gantry JOINTS command has %lu values; using first 3 (x,y,z) only", cmd.pose.size());
+                }
+            }
             double x = cmd.pose[0];
             double y = cmd.pose[1];
             double z = cmd.pose[2];
