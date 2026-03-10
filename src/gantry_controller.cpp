@@ -69,9 +69,11 @@ bool GantryController::initialize(GantryLimits lim, GantryPosition init, double 
 }
 
 bool GantryController::setTarget(double x, double y, double z) {
-    if (x < limits.min_x || x > limits.max_x) return false;
-    if (y < limits.min_y || y > limits.max_y) return false;
-    if (z < limits.min_z || z > limits.max_z) return false;
+    if (x < limits.min_x || x > limits.max_x ||
+        y < limits.min_y || y > limits.max_y ||
+        z < limits.min_z || z > limits.max_z) {
+        return false;
+    }
 
     mutex_target.lock();
     target_pos.x = x;

@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<launch>
+	<arg name="min_x" default="-0.4"/>
+	<arg name="max_x" default="0.4"/>
+	<arg name="min_y" default="-0.3"/>
+	<arg name="max_y" default="0.3"/>
+	<arg name="min_z" default="-0.5"/>
+	<arg name="max_z" default="0.5"/>
+	<arg name="max_speed" default="0.2"/>
+
+	<!-- Clear previous robot params -->
+	<rosparam command="delete" param="robot_config" />
+	<rosparam command="delete" param="robot_description" />
+
+	<!-- Configure dnb_tool_manager to read from gantry driver topic (it's started by dnb_bundle) -->
+	<param name="/dnb_tool_manager/tool_frame_source" value="topic"/>
+	<param name="/dnb_tool_manager/tool_frame_topic" value="/dnb_gantry_simulator/tool_frame"/>
+	<param name="/dnb_tool_manager/tool_frame_robotbase_topic" value="/dnb_tool_frame_robotbase"/>
+
+	<!-- Kill dnb_tool_manager (started by dnb_bundle) and restart it with correct params -->
+	<!-- It was started before our params were set, so it uses stale TF-based config -->
+	<node pkg="dnb_gantry_simulator" type="kill_tool_manager.sh" name="restart_tool_manager" output="screen" />
+
+	<!-- Load URDF robot model -->
+	<param name="robot_description" command="$(find xacro)/xacro '$(find dnb_gantry_simulator)/urdf/gantry.urdf'"/>
+
+	<!-- Load the robot config -->
+	<rosparam file="$(find dnb_gantry_simulator)/module_config/robot/gantry.yaml" command="load" ns="robot_config" />
+
+	<!-- Gantry Simulator Node -->
+	<node name="dnb_gantry_simulator" pkg="dnb_gantry_simulator" type="dnb_gantry_simulator_node" output="screen">
+		<param name="min_x" value="$(arg min_x)"/>
+		<param name="max_x" value="$(arg max_x)"/>
+		<param name="min_y" value="$(arg min_y)"/>
+		<param name="max_y" value="$(arg max_y)"/>
+		<param name="min_z" value="$(arg min_z)"/>
+		<param name="max_z" value="$(arg max_z)"/>
+		<param name="max_speed" value="$(arg max_speed)"/>
+	</node>
+
+	<!-- Robot state publisher -->
+	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen"/>
+
+	<!-- Joint state publisher - source from simulator joint states -->
+	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" output="screen">
+		<param name="use_gui" value="false"/>
+		<rosparam param="source_list">[/dnb_gantry_simulator/joint_states]</rosparam>
+	</node>
+
+	<!-- world to robot_base static transform publisher -->
+	<node args="0 0 0 0 0 0 /world /robot_base 100" name="stfp_world_to_robot_base" pkg="tf" type="static_transform_publisher"/>
+
+	<!-- robot_base to base_link static transform publisher (like nachi driver) -->
+	<node args="0 0 0 0 0 0 /robot_base /base_link 100" name="stfp_robot_base_to_base_link" pkg="tf" type="static_transform_publisher"/>
+
+	<!-- Set kinematic model (required by dnb packages) -->
+	<param name="simulation_params/kinematic_model" value="Gantry 3-Axis"/>
+
+	<!-- Start remote robot control node (jog interface only, no interactive marker) -->
+	<node name="dnb_remote_robot_control" pkg="dnb_remote_robot_control" type="delta_interface_v3.py" clear_params="true">
+		<rosparam file="$(find dnb_remote_robot_control)/config/general.yaml" command="load" />
+		<rosparam file="$(find dnb_gantry_simulator)/module_config/robot/gantry.yaml" command="load" />
+		<!-- Remap to use gantry driver's topic instead of dnb_tool_manager's -->
+		<remap from="dnb_tool_frame_robotbase" to="/dnb_tool_frame_robotbase"/>
+		<remap from="dnb_tool_frame" to="/dnb_gantry_simulator/tool_frame"/>
+	</node>
+
+	<!-- DISABLED: Interactive marker nodes (for testing position switching bug)
+	<node name="dnb_remote_robot_control_interactive_marker" pkg="dnb_remote_robot_control" type="interactive_markers_node" />
+	<node name="interactive_marker_proxy_tool" pkg="interactive_marker_proxy" type="proxy" output="screen">
+		<remap from="topic_ns" to="/remotecontrol_markers_tool" />
+		<remap from="target_frame" to="tool0" />
+	</node>
+	<node name="interactive_marker_proxy_base" pkg="interactive_marker_proxy" type="proxy" output="screen">
+		<remap from="topic_ns" to="/remotecontrol_markers_base" />
+		<remap from="target_frame" to="tool0" />
+	</node>
+	<node name="interactive_marker_proxy_world" pkg="interactive_marker_proxy" type="proxy" output="screen">
+		<remap from="topic_ns" to="/remotecontrol_markers_world" />
+		<remap from="target_frame" to="tool0" />
+	</node>
+	-->
+
+	<!-- DISABLED: dnb_tool_manager (testing position switching bug)
+	<node name="dnb_tool_manager" pkg="dnb_tool_manager" type="dnb_tool_manager_node" output="screen" respawn="true"/>
+	-->
+
+	<!-- Notify robot start -->
+	<include file="$(find robot_movement_interface)/launch/notify_robot_start.launch"/>
+</launch>
