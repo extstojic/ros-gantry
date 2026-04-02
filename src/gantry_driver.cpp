@@ -40,10 +40,6 @@ GantryDriver::GantryDriver(GantryController* controller) {
     sub_command_list = nh.subscribe("/command_list", 10, &GantryDriver::cb_command_list, this);
     pub_command_result = nh.advertise<robot_movement_interface::Result>("/command_result", 10);
     pub_dnb_tool_frame = private_nh.advertise<robot_movement_interface::EulerFrame>("tool_frame", 10, true);
-    pub_dnb_tool_frame_global = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame", 10, true);
-    pub_dnb_tool_frame_robotbase = nh.advertise<robot_movement_interface::EulerFrame>("/dnb_tool_frame_robotbase", 10, true);
-    pub_tool_frame = nh.advertise<robot_movement_interface::EulerFrame>("/tool_frame", 10, true);
-    pub_tool_frame_world = nh.advertise<robot_movement_interface::EulerFrame>("/tool_frame_world", 10, true);
     pub_current_speed_scale = nh.advertise<std_msgs::Float32>("/current_speed_scale", 10, true);
     
     std_msgs::Float32 speed_scale_msg;
@@ -92,12 +88,6 @@ void GantryDriver::cb_position_update_timer(const ros::TimerEvent &event) {
     tcp_pose.gamma = 0.0;
     
     pub_dnb_tool_frame.publish(tcp_pose);
-    pub_dnb_tool_frame_global.publish(tcp_pose);
-    pub_dnb_tool_frame_robotbase.publish(tcp_pose);
-    pub_tool_frame.publish(tcp_pose);
-    pub_tool_frame_world.publish(tcp_pose);
-    
-    // TF broadcast removed - dnb_tool_manager handles it based on our EulerFrame messages
 }
 
 void GantryDriver::publishJointStates(GantryPosition position) {

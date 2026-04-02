@@ -11,7 +11,7 @@
 
 ```bash
 cd ~/dnb_catkin_ws/src
-git clone <this-repo>
+git clone <this-repo> dnb_gantry_simulator
 cd ~/dnb_catkin_ws
 catkin_make
 source devel/setup.bash

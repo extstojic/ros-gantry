@@ -17,10 +17,6 @@
 	<param name="/dnb_tool_manager/tool_frame_topic" value="/dnb_gantry_simulator/tool_frame"/>
 	<param name="/dnb_tool_manager/tool_frame_robotbase_topic" value="/dnb_tool_frame_robotbase"/>
 
-	<!-- Kill dnb_tool_manager (started by dnb_bundle) and restart it with correct params -->
-	<!-- It was started before our params were set, so it uses stale TF-based config -->
-	<node pkg="dnb_gantry_simulator" type="kill_tool_manager.sh" name="restart_tool_manager" output="screen" />
-
 	<!-- Load URDF robot model -->
 	<param name="robot_description" command="$(find xacro)/xacro '$(find dnb_gantry_simulator)/urdf/gantry.urdf'"/>
 
@@ -60,9 +56,9 @@
 	<node name="dnb_remote_robot_control" pkg="dnb_remote_robot_control" type="delta_interface_v3.py" clear_params="true">
 		<rosparam file="$(find dnb_remote_robot_control)/config/general.yaml" command="load" />
 		<rosparam file="$(find dnb_gantry_simulator)/module_config/robot/gantry.yaml" command="load" />
-		<!-- Remap to use gantry driver's topic instead of dnb_tool_manager's -->
+		<!-- dnb_tool_manager republishes the configured gantry tool frame to the shared topics -->
 		<remap from="dnb_tool_frame_robotbase" to="/dnb_tool_frame_robotbase"/>
-		<remap from="dnb_tool_frame" to="/dnb_gantry_simulator/tool_frame"/>
+		<remap from="dnb_tool_frame" to="/dnb_tool_frame"/>
 	</node>
 
 	<!-- DISABLED: Interactive marker nodes (for testing position switching bug)
@@ -79,10 +75,6 @@
 		<remap from="topic_ns" to="/remotecontrol_markers_world" />
 		<remap from="target_frame" to="tool0" />
 	</node>
-	-->
-
-	<!-- DISABLED: dnb_tool_manager (testing position switching bug)
-	<node name="dnb_tool_manager" pkg="dnb_tool_manager" type="dnb_tool_manager_node" output="screen" respawn="true"/>
 	-->
 
 	<!-- Notify robot start -->
