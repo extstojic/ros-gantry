@@ -20,7 +20,7 @@ tool_frame_source: 'topic'
 tool_frame_robotbase_topic: '/dnb_tool_frame_robotbase'
 
 # Custom initialization service that returns current robot position
-marker_init_service: '/dnb_gantry_simulator_node/get_marker_init'
+marker_init_service: '/dnb_gantry_simulator/get_marker_init'
 
 # Speed control topics for operator panel compatibility
 current_speed_scale_topic: '/current_speed_scale'

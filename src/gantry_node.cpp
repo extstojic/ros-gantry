@@ -5,7 +5,7 @@
 #include "dnb_gantry_simulator/gantry_driver.h"
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "dnb_gantry_simulator_node");
+    ros::init(argc, argv, "dnb_gantry_simulator");
     ros::NodeHandle nh;
     ros::NodeHandle pnh("~");
     
