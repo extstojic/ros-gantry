@@ -59,6 +59,8 @@
 		<!-- Use direct gantry source for jog feedback while dnb_tool_manager remains active for shared outputs -->
 		<remap from="dnb_tool_frame_robotbase" to="/dnb_gantry_simulator/tool_frame"/>
 		<remap from="dnb_tool_frame" to="/dnb_gantry_simulator/tool_frame"/>
+		<remap from="tool_frame" to="/dnb_gantry_simulator/tool_frame"/>
+		<remap from="tool_frame_world" to="/dnb_gantry_simulator/tool_frame"/>
 	</node>
 
 	<!-- DISABLED: Interactive marker nodes (for testing position switching bug)
