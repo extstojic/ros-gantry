@@ -44,9 +44,7 @@ GantryDriver::GantryDriver(GantryController* controller) {
     pub_tool_frame_world = nh.advertise<robot_movement_interface::EulerFrame>("/tool_frame_world", 10, true);
     pub_current_speed_scale = nh.advertise<std_msgs::Float32>("/current_speed_scale", 10, true);
     
-    std_msgs::Float32 speed_scale_msg;
-    speed_scale_msg.data = 1.0;
-    pub_current_speed_scale.publish(speed_scale_msg);
+    publishCurrentSpeedScale();
 
     dnb_msgs::ComponentStatus status_msg;
     status_msg.status_id = dnb_msgs::ComponentStatus::RUNNING;
@@ -132,6 +130,7 @@ bool GantryDriver::cb_move(dnb_gantry_simulator::MoveGantry::Request &req, dnb_g
     }
 
     if (controller->setSpeed(speed)) {
+        publishCurrentSpeedScale();
         if (controller->setTarget(req.x, req.y, req.z)) {
             if (controller->awaitFinished()) {
                 res.error_code = dnb_gantry_simulator::MoveGantry::Response::SUCCESS;
@@ -255,6 +254,7 @@ void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
             }
 
             controller->setSpeed(speed);
+            publishCurrentSpeedScale();
             if (!controller->setTarget(x, y, z)) {
                 robot_movement_interface::Result result;
                 result.header.stamp = ros::Time::now();
@@ -289,6 +289,16 @@ void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
         pub_command_result.publish(result);
         processing_command = false;
     }
+}
+
+void GantryDriver::publishCurrentSpeedScale() {
+    double current_speed = controller->getSpeed();
+    double max_speed = controller->getLimits().max_speed;
+    double speed_scale = (max_speed > 0) ? (current_speed / max_speed) : 0.0;
+    
+    std_msgs::Float32 msg;
+    msg.data = speed_scale;
+    pub_current_speed_scale.publish(msg);
 }
 
 bool GantryDriver::cb_get_marker_init(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res) {

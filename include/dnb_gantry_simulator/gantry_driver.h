@@ -38,6 +38,7 @@ private:
     void cb_position_update_timer(const ros::TimerEvent &event);
     void cb_process_command_timer(const ros::TimerEvent &event);
     void publishJointStates(GantryPosition position);
+    void publishCurrentSpeedScale();
 
     ros::NodeHandle nh;
     ros::NodeHandle stop_nh;
