@@ -48,10 +48,10 @@ joint_limits:
 # Joints delta
 joints_delta_replace: false
 joints_delta_command_type: 'LIN'
-joints_delta_velocity_type: 'M/S'
+joints_delta_velocity_type: 'PERCENT'
 joints_delta_acceleration_type: 'PERCENT'
 joints_delta_blending_type: 'PERCENT'
-joints_delta_velocity: 0.05
+joints_delta_velocity: 50
 joints_delta_acceleration: 100
 joints_delta_blending: 0
 
@@ -68,10 +68,10 @@ joints_goal_blending: 0
 # Cartesian delta Translation
 cartesian_delta_replace: false
 cartesian_delta_command_type: 'LIN'
-cartesian_delta_velocity_type: 'M/S'
+cartesian_delta_velocity_type: 'PERCENT'
 cartesian_delta_acceleration_type: 'PERCENT'
 cartesian_delta_blending_type: 'PERCENT'
-cartesian_delta_velocity: 0.05
+cartesian_delta_velocity: 50
 cartesian_delta_acceleration: 100
 cartesian_delta_blending: 100
 
@@ -79,7 +79,7 @@ cartesian_delta_blending: 100
 cartesian_delta_command_type_rot: 'LIN'
 cartesian_delta_velocity_type_rot: 'DEG/S'
 cartesian_delta_acceleration_type_rot: 'PERCENT'
-cartesian_delta_blending_type: 'PERCENT'
+cartesian_delta_blending_type_rot: 'PERCENT'
 cartesian_delta_velocity_rot: 15
 cartesian_delta_acceleration_rot: 100
 cartesian_delta_blending_rot: 100
