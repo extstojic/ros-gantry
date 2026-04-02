@@ -22,6 +22,9 @@ tool_frame_robotbase_topic: '/dnb_tool_frame_robotbase'
 # Custom initialization service that returns current robot position
 marker_init_service: '/dnb_gantry_simulator_node/get_marker_init'
 
+# Jog speed control - enables the speed slider in the operator panel
+jog_speed_topic: '/jog_speed'
+
 # Step translation
 step_translation: 0.01  # 10 mm
 step_translation_factor: 0.99

@@ -5,6 +5,7 @@
 #include <ros/callback_queue.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Float32.h>
+#include <mutex>
 #include <dnb_msgs/ComponentStatus.h>
 #include <std_msgs/Empty.h>
 #include <std_srvs/Trigger.h>
@@ -35,6 +36,7 @@ private:
     bool cb_get_marker_init(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
     void cb_reset(const std_msgs::String &msg);
     void cb_command_list(const robot_movement_interface::CommandList::ConstPtr &msg);
+    void cb_jog_speed(const std_msgs::Float32::ConstPtr &msg);
     void cb_position_update_timer(const ros::TimerEvent &event);
     void cb_process_command_timer(const ros::TimerEvent &event);
     void publishJointStates(GantryPosition position);
@@ -51,7 +53,10 @@ private:
     ros::ServiceServer srv_get_marker_init;
     ros::Subscriber sub_notify_reset_simulation;
     ros::Subscriber sub_command_list;
+    ros::Subscriber sub_jog_speed;
     std::deque<robot_movement_interface::Command> command_queue;
+    std::mutex mutex_jog_speed;
+    double jog_speed_scale = 1.0;  // Speed multiplier from UI slider (0.0 to 1.0)
     ros::Timer process_command_timer;
     std::atomic<bool> processing_command{false};
     GantryPosition command_target = {0.0, 0.0, 0.0};  // Target position being moved towards

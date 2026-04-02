@@ -38,6 +38,7 @@ GantryDriver::GantryDriver(GantryController* controller) {
     pub_status = private_nh.advertise<dnb_msgs::ComponentStatus>("status", 1, true);
     pub_robot_status = nh.advertise<industrial_msgs::RobotStatus>("/robot_status", 10, true);
     sub_command_list = nh.subscribe("/command_list", 10, &GantryDriver::cb_command_list, this);
+    sub_jog_speed = nh.subscribe("/jog_speed", 1, &GantryDriver::cb_jog_speed, this);
     pub_command_result = nh.advertise<robot_movement_interface::Result>("/command_result", 10);
     pub_dnb_tool_frame = private_nh.advertise<robot_movement_interface::EulerFrame>("tool_frame", 10, true);
     pub_tool_frame = nh.advertise<robot_movement_interface::EulerFrame>("/tool_frame", 10, true);
@@ -171,6 +172,13 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
     }
 }
 
+void GantryDriver::cb_jog_speed(const std_msgs::Float32::ConstPtr &msg) {
+    mutex_jog_speed.lock();
+    jog_speed_scale = std::max(0.0, std::min(1.0, msg->data));
+    mutex_jog_speed.unlock();
+    publishCurrentSpeedScale();
+}
+
 void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
     if (processing_command) {
         GantryPosition pos = controller->getCurrentPosition();
@@ -253,6 +261,10 @@ void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
                 }
             }
 
+            mutex_jog_speed.lock();
+            speed *= jog_speed_scale;
+            mutex_jog_speed.unlock();
+
             controller->setSpeed(speed);
             publishCurrentSpeedScale();
             if (!controller->setTarget(x, y, z)) {
@@ -292,12 +304,12 @@ void GantryDriver::cb_process_command_timer(const ros::TimerEvent &evt) {
 }
 
 void GantryDriver::publishCurrentSpeedScale() {
-    double current_speed = controller->getSpeed();
-    double max_speed = controller->getLimits().max_speed;
-    double speed_scale = (max_speed > 0) ? (current_speed / max_speed) : 0.0;
+    mutex_jog_speed.lock();
+    double local_jog_scale = jog_speed_scale;
+    mutex_jog_speed.unlock();
     
     std_msgs::Float32 msg;
-    msg.data = speed_scale;
+    msg.data = local_jog_scale;
     pub_current_speed_scale.publish(msg);
 }
 
