@@ -54,6 +54,9 @@ private:
     ros::Subscriber sub_notify_reset_simulation;
     ros::Subscriber sub_command_list;
     ros::Subscriber sub_jog_speed;
+    ros::Subscriber sub_set_jog_speed;
+    ros::Subscriber sub_set_speed_scale;
+    ros::Subscriber sub_set_current_speed_scale;
     std::deque<robot_movement_interface::Command> command_queue;
     std::mutex mutex_jog_speed;
     double jog_speed_scale = 1.0;  // Speed multiplier from UI slider (0.0 to 1.0)
@@ -72,6 +75,7 @@ private:
     ros::Publisher pub_tool_frame;                  // /tool_frame (UI compatibility)
     ros::Publisher pub_tool_frame_world;            // /tool_frame_world (UI compatibility)
     ros::Publisher pub_current_speed_scale;         // Speed multiplier for jog commands
+    ros::Publisher pub_speed_scale;                 // /speed_scale (UI compatibility)
     ros::Timer position_update_timer;
 
     ros::Time last_tool_frame_publish_time;

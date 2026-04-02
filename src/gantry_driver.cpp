@@ -39,11 +39,15 @@ GantryDriver::GantryDriver(GantryController* controller) {
     pub_robot_status = nh.advertise<industrial_msgs::RobotStatus>("/robot_status", 10, true);
     sub_command_list = nh.subscribe("/command_list", 10, &GantryDriver::cb_command_list, this);
     sub_jog_speed = nh.subscribe("/jog_speed", 1, &GantryDriver::cb_jog_speed, this);
+    sub_set_jog_speed = nh.subscribe("/set_jog_speed", 1, &GantryDriver::cb_jog_speed, this);
+    sub_set_speed_scale = nh.subscribe("/set_speed_scale", 1, &GantryDriver::cb_jog_speed, this);
+    sub_set_current_speed_scale = nh.subscribe("/set_current_speed_scale", 1, &GantryDriver::cb_jog_speed, this);
     pub_command_result = nh.advertise<robot_movement_interface::Result>("/command_result", 10);
     pub_dnb_tool_frame = private_nh.advertise<robot_movement_interface::EulerFrame>("tool_frame", 10, true);
     pub_tool_frame = nh.advertise<robot_movement_interface::EulerFrame>("/tool_frame", 10, true);
     pub_tool_frame_world = nh.advertise<robot_movement_interface::EulerFrame>("/tool_frame_world", 10, true);
     pub_current_speed_scale = nh.advertise<std_msgs::Float32>("/current_speed_scale", 10, true);
+    pub_speed_scale = nh.advertise<std_msgs::Float32>("/speed_scale", 10, true);
     
     publishCurrentSpeedScale();
 
@@ -311,6 +315,7 @@ void GantryDriver::publishCurrentSpeedScale() {
     std_msgs::Float32 msg;
     msg.data = local_jog_scale;
     pub_current_speed_scale.publish(msg);
+    pub_speed_scale.publish(msg);
 }
 
 bool GantryDriver::cb_get_marker_init(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res) {

@@ -27,6 +27,9 @@ current_speed_scale_topic: '/current_speed_scale'
 speed_scale_topic: '/current_speed_scale'
 jog_speed_topic: '/jog_speed'
 set_jog_speed_topic: '/jog_speed'
+set_speed_scale_topic: '/set_speed_scale'
+set_current_speed_scale_topic: '/set_current_speed_scale'
+speed_slider_topic: '/set_speed_scale'
 
 # Step translation
 step_translation: 0.01  # 10 mm
