@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <launch>
+	<arg name="robot_model" default="-"/>
 	<arg name="min_x" default="-0.4"/>
 	<arg name="max_x" default="0.4"/>
 	<arg name="min_y" default="-0.3"/>
@@ -9,8 +10,11 @@
 	<arg name="max_speed" default="0.2"/>
 
 	<!-- Clear previous robot params -->
+	<rosparam command="delete" param="robot_model" />
 	<rosparam command="delete" param="robot_config" />
 	<rosparam command="delete" param="robot_description" />
+	<rosparam command="delete" param="simulation_params/kinematic_model" />
+	<param name="robot_model" value="$(arg robot_model)" />
 
 	<!-- Configure dnb_tool_manager to read from gantry driver topic (it's started by dnb_bundle) -->
 	<param name="/dnb_tool_manager/tool_frame_source" value="topic"/>
