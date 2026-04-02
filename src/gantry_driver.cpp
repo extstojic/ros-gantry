@@ -174,7 +174,7 @@ void GantryDriver::cb_command_list(const robot_movement_interface::CommandList::
 
 void GantryDriver::cb_jog_speed(const std_msgs::Float32::ConstPtr &msg) {
     mutex_jog_speed.lock();
-    jog_speed_scale = std::max(0.0, std::min(1.0, msg->data));
+    jog_speed_scale = std::max(0.0, std::min(1.0, static_cast<double>(msg->data)));
     mutex_jog_speed.unlock();
     publishCurrentSpeedScale();
 }
