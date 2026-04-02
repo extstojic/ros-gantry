@@ -63,6 +63,8 @@ private:
     ros::Publisher pub_robot_status;
     ros::Publisher pub_command_result;
     ros::Publisher pub_dnb_tool_frame;              // /dnb_gantry_simulator/tool_frame (source for dnb_tool_manager)
+    ros::Publisher pub_tool_frame;                  // /tool_frame (UI compatibility)
+    ros::Publisher pub_tool_frame_world;            // /tool_frame_world (UI compatibility)
     ros::Publisher pub_current_speed_scale;         // Speed multiplier for jog commands
     ros::Timer position_update_timer;
 
