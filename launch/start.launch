@@ -52,16 +52,13 @@
 	<!-- Set kinematic model (required by dnb packages) -->
 	<param name="simulation_params/kinematic_model" value="Gantry 3-Axis"/>
 
-	<!-- Start remote robot control node (jog interface only, no interactive marker) -->
-	<node name="dnb_remote_robot_control" pkg="dnb_remote_robot_control" type="delta_interface_v3.py" clear_params="true">
-		<rosparam file="$(find dnb_remote_robot_control)/config/general.yaml" command="load" />
-		<rosparam file="$(find dnb_gantry_simulator)/module_config/robot/gantry.yaml" command="load" />
-		<!-- Use direct gantry source for jog feedback while dnb_tool_manager remains active for shared outputs -->
-		<remap from="dnb_tool_frame_robotbase" to="/dnb_gantry_simulator/tool_frame"/>
-		<remap from="dnb_tool_frame" to="/dnb_gantry_simulator/tool_frame"/>
-		<remap from="tool_frame" to="/dnb_gantry_simulator/tool_frame"/>
-		<remap from="tool_frame_world" to="/dnb_gantry_simulator/tool_frame"/>
-	</node>
+	<!-- Start remote robot control through the standard launch entry used by working drivers -->
+	<include file="$(find dnb_remote_robot_control)/launch/start_v2.launch">
+		<arg name="package" value="dnb_gantry_simulator"/>
+		<arg name="sim" value="true"/>
+		<arg name="robot" value="gantry"/>
+		<arg name="tool_frame" value="tool0"/>
+	</include>
 
 	<!-- DISABLED: Interactive marker nodes (for testing position switching bug)
 	<node name="dnb_remote_robot_control_interactive_marker" pkg="dnb_remote_robot_control" type="interactive_markers_node" />
@@ -81,4 +78,7 @@
 
 	<!-- Notify robot start -->
 	<include file="$(find robot_movement_interface)/launch/notify_robot_start.launch"/>
+
+	<!-- Register the module so drag&bot picks up runtime capabilities consistently -->
+	<node name="RegisterDriverGantry" pkg="dnb_component_manager" type="register.py" args="$(find dnb_gantry_simulator)/module_config/module.yaml" />
 </launch>
