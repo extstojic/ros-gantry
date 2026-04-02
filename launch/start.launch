@@ -43,11 +43,7 @@
 	<!-- Robot state publisher -->
 	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen"/>
 
-	<!-- Joint state publisher - source from simulator joint states -->
-	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" output="screen">
-		<param name="use_gui" value="false"/>
-		<rosparam param="source_list">[/dnb_gantry_simulator/joint_states]</rosparam>
-	</node>
+	<!-- Joint states are already published on /joint_states by dnb_gantry_simulator -->
 
 	<!-- world to robot_base static transform publisher -->
 	<node args="0 0 0 0 0 0 /world /robot_base 100" name="stfp_world_to_robot_base" pkg="tf" type="static_transform_publisher"/>
